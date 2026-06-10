@@ -1,0 +1,47 @@
+# =====================
+# React
+# =====================
+client/node_modules/
+client/build/
+client/dist/
+
+# =====================
+# Django
+# =====================
+server/venv/
+server/env/
+server/.venv/
+venv/
+env/
+server/db.sqlite3
+server/media/
+server/staticfiles/
+
+# =====================
+# Environment Files
+# =====================
+.env
+**/.env
+
+# =====================
+# Python
+# =====================
+__pycache__/
+*.py[cod]
+
+# =====================
+# IDE
+# =====================
+.vscode/
+.idea/
+
+# =====================
+# OS Files
+# =====================
+.DS_Store
+Thumbs.db
+
+# =====================
+# Logs
+# =====================
+*.log
