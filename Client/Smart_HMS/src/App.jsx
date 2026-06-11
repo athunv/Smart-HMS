@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 import Login from './components/Auth/Login'
 import DoctorDashboard from './components/Doctor/DoctorDashboard'
 import PatientProfile from './components/Patient/PatientProfile'
+import DoctorsDirectory from './components/Patient/DoctorsDirectory'
 
 
 function App() {
@@ -19,6 +20,9 @@ function App() {
         <Route path='' element={<Login/>}/>
         <Route path='doctor-dashboard' element={<DoctorDashboard/>}/>
         <Route path='patient-dashboard' element={<PatientProfile/>}/>
+
+        <Route path='patient/doctors' element={<DoctorsDirectory/>}/>
+
 
       </Routes>
       </BrowserRouter>
