@@ -6,15 +6,12 @@ class RoleBasedTokenSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Encrypt the role directly into the token payload for secure client-side decoding
         token['role'] = user.role
         return token
 
     def validate(self, attrs):
-        # Executes the default validation logic (verifies password/is_active) 
         data = super().validate(attrs)
         
-        # Inject explicit user fields into the final API JSON output
         data['id'] = self.user.id
         data['email'] = self.user.email
         data['role'] = self.user.role
@@ -126,3 +123,31 @@ class DoctorSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
+
+# serializers.py
+
+from rest_framework import serializers
+from .models import AppointmentModel
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+
+    patient_name = serializers.CharField(source='patient.user.get_full_name',read_only=True)
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name',read_only=True)
+
+    class Meta:
+        model = AppointmentModel
+        fields = '__all__'
+
+from rest_framework import serializers
+from .models import DoctorScheduleModel
+
+
+class DoctorScheduleSerializer(serializers.ModelSerializer):
+
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name',read_only=True)
+
+    class Meta:
+        model = DoctorScheduleModel
+        fields = '__all__'

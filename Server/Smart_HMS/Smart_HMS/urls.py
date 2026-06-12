@@ -34,7 +34,17 @@ urlpatterns = [
     path('department/<int:id>/',DepartmentCreateView.as_view(),name='department-update'),
 
     path('doctor/',DoctorCreateView.as_view(),name='doctor'),
-    path('doctor/<int:id>/',DoctorCreateView.as_view(),name='doctor-update')
+    path('doctor/<int:id>/',DoctorCreateView.as_view(),name='doctor-update'),
+
+     path('appointments/create/',AppointmentCreateView.as_view()),
+
+    path('appointments/',AppointmentListView.as_view()),
+
+    path('appointments/my/',MyAppointmentsView.as_view()),
+
+    path('appointments/doctor/',DoctorAppointmentsView.as_view()),
+
+    path('slots/<int:doctor_id>/<str:date>/',AvailableSlotsView.as_view()),
 
 ]
 if settings.DEBUG:

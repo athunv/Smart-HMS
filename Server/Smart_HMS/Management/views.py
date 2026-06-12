@@ -11,6 +11,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
 from .serializers import RoleBasedTokenSerializer
 
+from rest_framework.generics import CreateAPIView,ListAPIView
+from rest_framework.viewsets import ModelViewSet
+from datetime import datetime, timedelta
+
 class RoleBasedLoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
     serializer_class = RoleBasedTokenSerializer
@@ -138,3 +142,109 @@ class DoctorCreateView(APIView):
         doctor = get_object_or_404(DoctorModel,id=id)
         doctor.delete()
         return Response({"Doctor Deleted Succefully"},status=status.HTTP_200_OK)
+    
+
+
+
+
+class AppointmentCreateView(CreateAPIView):
+
+    queryset = AppointmentModel.objects.all()
+    serializer_class = AppointmentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save( booked_by=self.request.user)
+
+
+
+class AppointmentListView(ListAPIView):
+
+    queryset = AppointmentModel.objects.all()
+    serializer_class = AppointmentSerializer
+
+
+# Logged-in patient sees only their bookings.
+class MyAppointmentsView(ListAPIView):
+
+    serializer_class = AppointmentSerializer
+
+    def get_queryset(self):
+
+        return AppointmentModel.objects.filter(patient__user=self.request.user).order_by('-appointment_date')
+    
+class DoctorAppointmentsView(ListAPIView):
+
+    serializer_class = AppointmentSerializer
+
+    def get_queryset(self):
+
+        return AppointmentModel.objects.filter(
+            doctor__user=self.request.user).order_by('appointment_date')
+    
+class DoctorScheduleViewSet(ModelViewSet):
+
+    queryset = DoctorScheduleModel.objects.all()
+    serializer_class = DoctorScheduleSerializer
+
+class AvailableSlotsView(APIView):
+
+    def get(self, request, doctor_id, date):
+
+        doctor = DoctorModel.objects.get(id=doctor_id)
+
+        booking_date = datetime.strptime(
+            date,
+            "%Y-%m-%d"
+        ).date()
+
+        day_name = booking_date.strftime("%A")
+
+        schedule = DoctorScheduleModel.objects.filter(
+            doctor=doctor,
+            day=day_name
+        ).first()
+
+        if not schedule:
+            return Response([])
+
+        start = datetime.combine(
+            booking_date,
+            schedule.start_time
+        )
+
+        end = datetime.combine(
+            booking_date,
+            schedule.end_time
+        )
+
+        slots = []
+
+        while start < end:
+            slots.append(
+                start.strftime("%H:%M")
+            )
+
+            start += timedelta(
+                minutes=schedule.slot_duration
+            )
+
+        booked_slots = AppointmentModel.objects.filter(
+            doctor=doctor,
+            appointment_date=booking_date
+        ).values_list(
+            'appointment_time',
+            flat=True
+        )
+
+        booked_slots = [
+            t.strftime("%H:%M")
+            for t in booked_slots
+        ]
+
+        available_slots = [
+            slot
+            for slot in slots
+            if slot not in booked_slots
+        ]
+
+        return Response(available_slots)
