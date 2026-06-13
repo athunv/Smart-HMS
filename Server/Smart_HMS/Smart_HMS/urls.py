@@ -20,6 +20,14 @@ from Management.views import *
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(
+    r'doctor-schedule',
+    DoctorScheduleViewSet,
+    basename='doctor-schedule'
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -47,6 +55,7 @@ urlpatterns = [
     path('slots/<int:doctor_id>/<str:date>/',AvailableSlotsView.as_view()),
 
 ]
+urlpatterns += router.urls
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL,

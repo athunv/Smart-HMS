@@ -13,7 +13,7 @@ class UserModel(AbstractUser):
         ('lab', 'Lab'),
     )
 
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES,null=True,blank=True)
     phone = models.PositiveBigIntegerField(null=True,blank=True)
     address = models.TextField(null=True,blank=True)
     photo = models.ImageField(null=True,blank=True,upload_to='profile/')
@@ -59,19 +59,13 @@ class AppointmentModel(models.Model):
     )
 
     patient = models.ForeignKey(PatientModel,on_delete=models.CASCADE,related_name='appointments')
-    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE,related_name='appointments' )
+    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE,related_name='appointments')
     appointment_date = models.DateField()
-    appointment_time = models.TimeField()
+    token_number = models.PositiveIntegerField(null=True,blank=True)
     booked_by = models.ForeignKey(UserModel,on_delete=models.SET_NULL,null=True,blank=True,related_name='booked_appointments')
-    status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='pending')
     reason = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('doctor', 'appointment_date', 'appointment_time')
-
-    def __str__(self):
-        return f"{self.patient.user.username} - {self.doctor.user.username}"
     
 
 class DoctorScheduleModel(models.Model):
@@ -91,3 +85,80 @@ class DoctorScheduleModel(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     slot_duration = models.PositiveIntegerField(default=10, help_text="Minutes")
+
+
+class MedicalRecordModel(models.Model):
+    patient = models.ForeignKey(PatientModel,on_delete=models.CASCADE)
+    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE)
+
+    symptoms = models.TextField()
+    diagnosis = models.TextField()
+    prescription = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class PrescriptionModel(models.Model):
+    patient = models.ForeignKey(PatientModel,on_delete=models.CASCADE)
+    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE)
+
+    medicine_name = models.CharField(max_length=100)
+    dosage = models.CharField(max_length=50)
+    duration = models.CharField(max_length=50)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class MedicineModel(models.Model):
+
+    name = models.CharField(max_length=100)
+
+    stock = models.PositiveIntegerField()
+
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+class LabTestModel(models.Model):
+
+    patient = models.ForeignKey(
+        PatientModel,
+        on_delete=models.CASCADE
+    )
+
+    test_name = models.CharField(max_length=100)
+
+    result = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        default='pending'
+    )
+
+class DoctorLeaveModel(models.Model):
+
+    doctor = models.ForeignKey(
+        DoctorModel,
+        on_delete=models.CASCADE
+    )
+
+    leave_date = models.DateField()
+
+    reason = models.CharField(max_length=200)
+
+
+class StaffModel(models.Model):
+
+    user = models.ForeignKey(
+        UserModel,
+        on_delete=models.CASCADE
+    )
+
+    designation = models.CharField(max_length=100)
+
+    salary = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )

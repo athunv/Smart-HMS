@@ -59,6 +59,7 @@ export default function DoctorManagement() {
         email: doctor.user?.email || '',
         username: doctor.user?.email || '',
         password: '', 
+
       },
       department: doctor.department || '',
       qualification: doctor.qualification || '',
@@ -83,6 +84,7 @@ export default function DoctorManagement() {
       delete submitData.user.password;
     }
 
+      console.log("Sending:", submitData);
     const action = editingId 
       ? dispatch(updateDoctor({ id: editingId, doctor: submitData }))
       : dispatch(addDoctor(submitData));

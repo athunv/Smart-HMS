@@ -78,7 +78,7 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorModel
-        fields = ['department','user','qualification','specialization','con_fee','id']
+        fields = ['department','user','qualification','specialization','con_fee','id',]
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -125,23 +125,30 @@ class DoctorSerializer(serializers.ModelSerializer):
         return instance
     
 
-# serializers.py
 
-from rest_framework import serializers
-from .models import AppointmentModel
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-
-    patient_name = serializers.CharField(source='patient.user.get_full_name',read_only=True)
-    doctor_name = serializers.CharField(source='doctor.user.get_full_name',read_only=True)
 
     class Meta:
         model = AppointmentModel
         fields = '__all__'
 
-from rest_framework import serializers
-from .models import DoctorScheduleModel
+    def create(self, validated_data):
+
+        doctor = validated_data['doctor']
+        appointment_date = validated_data['appointment_date']
+
+        last_token = AppointmentModel.objects.filter(doctor=doctor,appointment_date=appointment_date).order_by('-token_number').first()
+
+        token_number = 1
+
+        if last_token:
+            token_number = last_token.token_number + 1
+
+        appointment = AppointmentModel.objects.create(token_number=token_number,**validated_data)
+
+        return appointment
 
 
 class DoctorScheduleSerializer(serializers.ModelSerializer):
