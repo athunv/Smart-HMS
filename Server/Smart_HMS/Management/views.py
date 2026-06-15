@@ -219,32 +219,30 @@ class AvailableSlotsView(APIView):
 
         slots = []
 
+        # Generate all possible time slots for the day
         while start < end:
-            slots.append(
-                start.strftime("%H:%M")
-            )
+            slots.append(start.strftime("%H:%M"))
+            start += timedelta(minutes=schedule.slot_duration)
 
-            start += timedelta(
-                minutes=schedule.slot_duration
-            )
-
-        booked_slots = AppointmentModel.objects.filter(
+        # --- THE FIX ---
+        # Instead of looking for a time field, we get the booked token numbers
+        booked_tokens = AppointmentModel.objects.filter(
             doctor=doctor,
             appointment_date=booking_date
         ).values_list(
-            'appointment_time',
+            'token_number',
             flat=True
         )
 
-        booked_slots = [
-            t.strftime("%H:%M")
-            for t in booked_slots
-        ]
-
-        available_slots = [
-            slot
-            for slot in slots
-            if slot not in booked_slots
-        ]
+        available_slots = []
+        
+        # Loop through the generated slots and map them to token numbers (1, 2, 3...)
+        for index, time_str in enumerate(slots):
+            # We assume tokens start at 1 (Token 1 = Slot index 0)
+            token_number = index + 1 
+            
+            # If the token is not in the booked list, the slot is available
+            if token_number not in booked_tokens:
+                available_slots.append(time_str)
 
         return Response(available_slots)

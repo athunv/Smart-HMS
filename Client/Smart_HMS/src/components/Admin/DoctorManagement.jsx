@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDoctor, addDoctor, updateDoctor, deleteDoctor } from '../../Redux/doctorSlice';
 import { fetchDepartment } from '../../Redux/departmentSlice';
-import { Plus, Edit2, Trash2, X, Activity, Briefcase, DollarSign, GraduationCap } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Activity, Briefcase, DollarSign, GraduationCap, Eye } from 'lucide-react';
+import DoctorDuetyManagement from './DoctorDuetyManagement';
 
 const initialFormState = {
   user: { first_name: '', last_name: '', email: '', password: '', username: '' },
@@ -13,8 +14,11 @@ const initialFormState = {
 };
 
 export default function DoctorManagement() {
+
   const dispatch = useDispatch();
-  
+  const [duetyModal,setDuetyModal] = useState(false)
+  const [selectedDoctor,setSelectedDoctor]=useState(null)
+
   const { doctors, loading, error } = useSelector((state) => state.doctors);
   const { departments, loading: isDeptLoading, error: deptError } = useSelector((state) => state.departments);
 
@@ -178,6 +182,9 @@ export default function DoctorManagement() {
                       <td className="p-4 font-medium text-slate-900">${doc.con_fee}</td>
                       <td className="p-4">
                         <div className="flex items-center justify-end gap-2.5">
+                          <button onClick={() => { setSelectedDoctor(doc); setDuetyModal(true); }} className="text-slate-400 hover:text-blue-600 transition-colors" title="Manage Schedule">
+  <Eye size={16} />
+</button>
                           <button onClick={() => handleEdit(doc)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit Profile">
                             <Edit2 size={16} />
                           </button>
@@ -329,6 +336,16 @@ export default function DoctorManagement() {
           </div>
         </div>
       )}
+
+     {duetyModal && selectedDoctor && (
+  <DoctorDuetyManagement 
+    doctorId={selectedDoctor.id} 
+    onClose={() => {
+      setDuetyModal(false);
+      setSelectedDoctor(null);
+    }} 
+  />
+)}
     </div>
   );
 }

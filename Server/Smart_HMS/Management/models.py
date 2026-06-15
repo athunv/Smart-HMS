@@ -46,7 +46,6 @@ class DoctorModel(models.Model):
     con_fee = models.PositiveIntegerField(null=True,blank=True)
 
 
-from django.db import models
 
 class AppointmentModel(models.Model):
 
