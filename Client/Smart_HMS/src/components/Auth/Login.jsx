@@ -44,9 +44,9 @@ export default function Login() {
 
       console.log('Login Success:', data);
 
-      localStorage.setItem('access', data.access);
-      localStorage.setItem('refresh', data.refresh);
-      localStorage.setItem('role', data.role);
+      sessionStorage.setItem('access', data.access);
+      sessionStorage.setItem('refresh', data.refresh);
+      sessionStorage.setItem('role', data.role);
 
 
 if (data.is_superuser) {

@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 # Create your views here.
 
-
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
 from .serializers import RoleBasedTokenSerializer
@@ -14,10 +14,18 @@ from .serializers import RoleBasedTokenSerializer
 from rest_framework.generics import CreateAPIView,ListAPIView
 from rest_framework.viewsets import ModelViewSet
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 class RoleBasedLoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
     serializer_class = RoleBasedTokenSerializer
+
+class MyProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request,*args,**kwargs):
+        patient = PatientModel.objects.get(user=request.user)
+        serializer = PatientSerializer(patient)
+        return Response(serializer.data)
 
 class PatientCreateView(APIView):
 
@@ -67,6 +75,19 @@ class PatientCreateView(APIView):
         
         except PatientModel.DoesNotExist:
             return Response({"error": "Patient not found"},status=status.HTTP_404_NOT_FOUND)
+        
+class EditProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+
+        patient = PatientModel.objects.get(user=request.user)
+        serializer = PatientSerializer(patient,data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=400)
 
 class DepartmentCreateView(APIView):
 
@@ -144,7 +165,27 @@ class DoctorCreateView(APIView):
         return Response({"Doctor Deleted Succefully"},status=status.HTTP_200_OK)
     
 
+class DoctorListView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        doctors = DoctorModel.objects.all()
+        serializer = DoctorListSerializer(doctors,many=True)
+        return Response(serializer.data)
+    
+class DoctorDetailView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+
+        doctor = DoctorModel.objects.get(id=id)
+
+        serializer = DoctorListSerializer(doctor)
+
+        return Response(serializer.data)
 
 
 class AppointmentCreateView(CreateAPIView):
@@ -246,3 +287,70 @@ class AvailableSlotsView(APIView):
                 available_slots.append(time_str)
 
         return Response(available_slots)
+    
+class ActiveConsultationView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        patient = PatientModel.objects.get(user=request.user)
+        appointments = AppointmentModel.objects.filter(patient=patient,status='confirmed',appointment_date=timezone.now().date())
+        serializer = MyAppointmentSerializer(appointments,many=True)
+        return Response(serializer.data)
+    
+class MyMedicalRecordsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        patient = PatientModel.objects.get(user=request.user)
+
+        records = MedicalRecordModel.objects.filter(patient=patient).order_by('-created_at')
+
+        serializer = MedicalRecordSerializer(records,many=True)
+
+        return Response(serializer.data)
+    
+class MyPrescriptionsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        patient = PatientModel.objects.get(
+            user=request.user
+        )
+
+        prescriptions = PrescriptionModel.objects.filter(
+            patient=patient
+        ).order_by('-created_at')
+
+        serializer = PrescriptionSerializer(
+            prescriptions,
+            many=True
+        )
+
+        return Response(serializer.data)
+    
+class MyLabTestsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        patient = PatientModel.objects.get(
+            user=request.user
+        )
+
+        tests = LabTestModel.objects.filter(
+            patient=patient
+        )
+
+        serializer = LabTestSerializer(
+            tests,
+            many=True
+        )
+
+        return Response(serializer.data)

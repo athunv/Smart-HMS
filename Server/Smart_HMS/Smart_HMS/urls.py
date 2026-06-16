@@ -34,6 +34,9 @@ urlpatterns = [
 
      path('login/', RoleBasedLoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    path('profile/', MyProfileView.as_view()),
+    path('profile/edit/', EditProfileView.as_view()),
     
     path('patient/',PatientCreateView.as_view(),name='patient'),
     path('patient/<int:id>/',PatientCreateView.as_view(),name='patient-reg'),
@@ -44,7 +47,14 @@ urlpatterns = [
     path('doctor/',DoctorCreateView.as_view(),name='doctor'),
     path('doctor/<int:id>/',DoctorCreateView.as_view(),name='doctor-update'),
 
-     path('appointments/create/',AppointmentCreateView.as_view()),
+    path('doctors/', DoctorListView.as_view()),
+    path('doctor-detail/<int:id>/', DoctorDetailView.as_view()),
+
+    path('appointments/create/',AppointmentCreateView.as_view()),
+    path('patient/active-consultations/',ActiveConsultationView.as_view()),
+
+    path('patient/prescriptions/',MyPrescriptionsView.as_view()),
+    path('patient/lab-tests/',MyLabTestsView.as_view()),
 
     path('appointments/',AppointmentListView.as_view()),
 

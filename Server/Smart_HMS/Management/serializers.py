@@ -33,15 +33,13 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PatientModel
-        fields = ['user','gender','DOB','blood_group','id','patient_code']
+        fields = ['user','gender','DOB','blood_group','id','patient_code','age','weight','height']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         password = user_data.pop('password')
         user = UserModel.objects.create_user(password=password,role='patient',**user_data)
-        patient = PatientModel.objects.create(
-            user=user,patient_code=f"PAT{user.id:05d}",**validated_data
-        )
+        patient = PatientModel.objects.create(user=user,patient_code=f"PAT{user.id:05d}",**validated_data)
         return patient
     
     def update(self, instance, validated_data):
@@ -66,6 +64,7 @@ class PatientSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
 
 class DepartmentSerializer(serializers.ModelSerializer):
 
@@ -78,7 +77,7 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorModel
-        fields = ['department','user','qualification','specialization','con_fee','id',]
+        fields = ['department','user','qualification','specialization','con_fee','id']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -88,17 +87,8 @@ class DoctorSerializer(serializers.ModelSerializer):
         if not user_data.get('username'):
             user_data['username'] = user_data['email']
 
-        user = UserModel.objects.create_user(
-            password=password,
-            role='doctor',
-            **user_data
-        )
-
-        doctor = DoctorModel.objects.create(
-            user=user,
-            **validated_data
-        )
-
+        user = UserModel.objects.create_user(password=password,role='doctor',**user_data)
+        doctor = DoctorModel.objects.create(user=user,**validated_data)
         return doctor
         
     def update(self, instance, validated_data):
@@ -124,9 +114,14 @@ class DoctorSerializer(serializers.ModelSerializer):
 
         return instance
     
+class DoctorListSerializer(serializers.ModelSerializer):
 
+    doctor_name = serializers.CharField(source='user.get_full_name',read_only=True)
+    department_name = serializers.CharField(source='department.dep_name',read_only=True)
 
-
+    class Meta:
+        model = DoctorModel
+        fields = ['id','doctor_name','department_name','specialization','qualification','con_fee']
 
 class AppointmentSerializer(serializers.ModelSerializer):
 
@@ -157,4 +152,38 @@ class DoctorScheduleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorScheduleModel
+        fields = '__all__'
+
+class MyAppointmentSerializer(serializers.ModelSerializer):
+
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name',read_only=True)
+    department = serializers.CharField(source='doctor.department.dep_name',read_only=True)
+
+    class Meta:
+        model = AppointmentModel
+        fields = '__all__'
+
+class MedicalRecordSerializer(serializers.ModelSerializer):
+
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name',read_only=True)
+
+    class Meta:
+        model = MedicalRecordModel
+        fields = '__all__'
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name',read_only=True)
+
+    class Meta:
+        model = PrescriptionModel
+        fields = '__all__'
+
+
+class LabTestSerializer(serializers.ModelSerializer):
+
+    patient_name = serializers.CharField(source='patient.user.get_full_name',read_only=True)
+    patient_code = serializers.CharField(source='patient.patient_code',read_only=True)
+
+    class Meta:
+        model = LabTestModel
         fields = '__all__'
