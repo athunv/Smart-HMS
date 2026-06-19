@@ -1,34 +1,32 @@
 import React, { useState } from 'react';
 import {
-  Bell, ChevronDown, Users, RotateCcw, MoreHorizontal, Download, 
-  Calendar, Menu, X, Check, Activity, ShieldAlert, HeartPulse, 
-  Stethoscope, BedDouble, Pill
+  Bell, ChevronDown, Calendar, Menu, X, CheckCircle2, 
+  UserPlus, Clock, Stethoscope, Pill, CalendarCheck,
+  MoreHorizontal, Download, Search, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PatientManagement from './PatientManagement';
-import DepartmentManagement from './DepartmentManagement';
-import DoctorManagement from './DoctorManagement';
 
+// --- Placeholder Subcomponents (Replace with your actual components) ---
+import PatientManagement from '../Admin/PatientManagement';
+const AppointmentManagement = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Book & Manage Appointments Content</h2></div>;
+const DoctorSchedules = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Doctor Duty Roster & Schedules Content</h2></div>;
+const PharmacyManagement = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Medicine Inventory & Prescriptions Content</h2></div>;
+const ProfileSettings = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Staff Account Settings</h2></div>;
+const PageTitle = ({ title }) => null; 
 
-// --- Placeholder Hospital Subcomponents ---
-// Replace these paths with your actual components later
-const NurseManagement = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Nursing Staff Allocations Content</h2></div>;
-const MedicineInventory = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Pharmacy Stock & Medicine Inventory Content</h2></div>;
-const ProfileSettings = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Account & Hospital Profile Settings</h2></div>;
-const PageTitle = ({ title }) => null; // Handles document titles natively if used elsewhere
-
-// --- Mock Medical Operational Data ---
-const activeERAlerts = [
-  { id: 1, type: 'Trauma Code Blue', location: 'ER - Bay 3', time: 'Just now', severity: 'bg-red-100 text-red-600' },
-  { id: 2, type: 'Critical Lab Result', location: 'ICU - Bed 12', time: '4 mins ago', severity: 'bg-orange-100 text-orange-600' },
-  { id: 3, type: 'Ambulance Inbound', location: 'Triage Entry', time: '12 mins ago', severity: 'bg-blue-100 text-blue-600' },
+// --- Mock Staff Operational Data ---
+const upcomingAppointments = [
+  { id: 1, patient: 'Rahul Sharma', doctor: 'Dr. Athun V', time: '09:30 AM', type: 'General Checkup', status: 'Waiting', color: 'bg-orange-100 text-orange-600' },
+  { id: 2, patient: 'Priya Patel', doctor: 'Dr. Sarah Jenkins', time: '10:00 AM', type: 'Consultation', status: 'Checked In', color: 'bg-blue-100 text-blue-600' },
+  { id: 3, patient: 'Amit Kumar', doctor: 'Dr. Marcus Vance', time: '10:15 AM', type: 'Follow-up', status: 'Scheduled', color: 'bg-gray-100 text-gray-600' },
+  { id: 4, patient: 'Sneha Reddy', doctor: 'Dr. Athun V', time: '10:45 AM', type: 'Vaccination', status: 'Scheduled', color: 'bg-gray-100 text-gray-600' },
 ];
 
-const theaterStatus = [
-  { room: 'Operating Theater 01', procedure: 'Cardiovascular Surgery', doctor: 'Dr. Athun V', status: 'In Progress', color: 'text-amber-500 bg-amber-50' },
-  { room: 'Operating Theater 02', procedure: 'Orthopedic Arthroplasty', doctor: 'Dr. Sarah Jenkins', status: 'Pre-Op Setup', color: 'text-blue-500 bg-blue-50' },
-  { room: 'Operating Theater 03', procedure: 'Emergency Appendectomy', doctor: 'Dr. Marcus Vance', status: 'In Progress', color: 'text-amber-500 bg-amber-50' },
-  { room: 'Operating Theater 04', procedure: 'Sterilization Cycle', doctor: 'N/A', status: 'Available', color: 'text-green-500 bg-green-50' },
+const doctorAvailability = [
+  { doctor: 'Dr. Athun V', dept: 'Cardiology', shift: '08:00 AM - 04:00 PM', status: 'Available', color: 'text-green-600 bg-green-50' },
+  { doctor: 'Dr. Sarah Jenkins', dept: 'Orthopedics', shift: '09:00 AM - 05:00 PM', status: 'With Patient', color: 'text-amber-600 bg-amber-50' },
+  { doctor: 'Dr. Marcus Vance', dept: 'General Med', shift: '08:00 AM - 02:00 PM', status: 'On Break', color: 'text-gray-600 bg-gray-100' },
+  { doctor: 'Dr. Neha Gupta', dept: 'Pediatrics', shift: '12:00 PM - 08:00 PM', status: 'Off Duty', color: 'text-red-500 bg-red-50' },
 ];
 
 // --- Dropdown Wrapper ---
@@ -52,14 +50,14 @@ export default function StaffDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
 
-  // Updated navigation links per request
-  const navItems = ['Dashboard', 'Patient', 'Doctor', 'Nurse', 'Medicine','Department'];
+  // Aligned with Staff Roles: Patient Reg, Booking, Doctor Schedules, Medicine
+  const navItems = ['Dashboard', 'Patients', 'Appointments', 'Schedules', 'Pharmacy'];
 
   const toggleDropdown = (name) => setActiveDropdown(activeDropdown === name ? null : name);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]/90 text-slate-900 font-sans">
-      <PageTitle title={`${activeTab} - Smart-HMS Med`} />
+      <PageTitle title={`${activeTab} - Smart-HMS Staff`} />
       
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
@@ -77,7 +75,7 @@ export default function StaffDashboard() {
             >
               <div className="flex justify-between items-center mb-10">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold tracking-tight text-slate-900">Smart-HMS </span>
+                  <span className="text-xl font-bold tracking-tight text-slate-900">Smart-HMS</span>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
                   <X size={20} />
@@ -140,17 +138,9 @@ export default function StaffDashboard() {
                 <Bell size={20} />
               </button>
               <DropdownWrapper isOpen={activeDropdown === 'notif'}>
-                <p className="p-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Clinical Alerts</p>
-                <div className="space-y-1">
-                  {activeERAlerts.map(alert => (
-                    <div key={alert.id} className="flex gap-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${alert.severity}`}><Activity size={14} /></div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">{alert.type}</p>
-                        <p className="text-xs text-gray-500">{alert.location} • {alert.time}</p>
-                      </div>
-                    </div>
-                  ))}
+                <p className="p-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Staff Alerts</p>
+                <div className="space-y-1 p-2">
+                  <p className="text-sm text-gray-600">No new notifications</p>
                 </div>
               </DropdownWrapper>
             </div>
@@ -160,19 +150,20 @@ export default function StaffDashboard() {
                 onClick={() => toggleDropdown('profile')}
                 className="flex items-center gap-3 pl-2 md:pl-4 focus:outline-none"
               >
-                <img src="https://i.pravatar.cc/150?u=hospitaladmin" alt="Avatar" className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-gray-200 object-cover" />
+                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#8ac857] text-white flex items-center justify-center font-bold border border-gray-200">
+                  SD
+                </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-bold leading-none">Athun V</p>
-                  <p className="text-xs text-gray-500 mt-1">Chief Administrator</p>
+                  <p className="text-sm font-bold leading-none">Staff Desk</p>
+                  <p className="text-xs text-gray-500 mt-1">Receptionist</p>
                 </div>
                 <ChevronDown size={16} className={`text-gray-400 transition-transform ${activeDropdown === 'profile' ? 'rotate-180' : ''}`} />
               </button>
               <DropdownWrapper isOpen={activeDropdown === 'profile'}>
                 <div className="p-2 space-y-1">
-                  <button onClick={() => { setActiveTab('Account'); setActiveDropdown(null) }} className="w-full text-left p-3 text-sm font-medium hover:bg-gray-50 rounded-xl transition-colors">Hospital Settings</button>
-                  <button className="w-full text-left p-3 text-sm font-medium hover:bg-gray-50 rounded-xl transition-colors">Staff Logs</button>
+                  <button onClick={() => { setActiveTab('Account'); setActiveDropdown(null) }} className="w-full text-left p-3 text-sm font-medium hover:bg-gray-50 rounded-xl transition-colors">My Account</button>
                   <hr className="my-2 border-gray-100" />
-                  <button className="w-full text-left p-3 text-sm font-medium text-red-500 hover:bg-red-50 rounded-xl transition-colors">System Log Out</button>
+                  <button className="w-full text-left p-3 text-sm font-medium text-red-500 hover:bg-red-50 rounded-xl transition-colors">Log Out</button>
                 </div>
               </DropdownWrapper>
             </div>
@@ -186,88 +177,101 @@ export default function StaffDashboard() {
           <>
             <header className="flex flex-col md:flex-row md:items-center justify-between my-8 gap-4">
               <div>
-                <h1 className="sm:text-4xl text-2xl font-serif italic font-bold tracking-tight">Welcome back, Director Athun</h1>
-                <p className="text-gray-600 mt-2 text-sm italic">Real-time status overview of hospital admissions, clinic rosters, and unit capacities.</p>
+                <h1 className="sm:text-4xl text-2xl font-serif italic font-bold tracking-tight">Staff Overview</h1>
+                <p className="text-gray-600 mt-2 text-sm italic">Manage patient registrations, appointments, and doctor schedules.</p>
               </div>
               <div className="flex gap-3">
-                <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
-                  <Calendar size={16} /> Shift Schedule
+                <button onClick={() => setActiveTab('Patients')} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
+                  <UserPlus size={16} /> New Patient
                 </button>
-                <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors">
-                  <Download size={16} /> Census Report
+                <button onClick={() => setActiveTab('Appointments')} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#8ac857] text-slate-900 border border-transparent rounded-xl text-sm font-semibold shadow-sm hover:bg-[#7ebd4e] transition-colors">
+                  <CalendarCheck size={16} /> Book Appointment
                 </button>
               </div>
             </header>
 
-            {/* Medical KPI Stats Grid */}
+            {/* Daily Staff KPI Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <StatCard title="Active Inpatients" value="1,248" change="84% Bed Occupancy" changeColor="text-blue-600" icon={BedDouble} />
-              <StatCard title="On-Duty Physicians" value="42 Staff" change="3 Emergency Leads" changeColor="text-orange-500" icon={Stethoscope} />
-              <StatCard title="ER Waiting Queue" value="14 Cases" change="-4 Avg triage load" changeColor="text-green-600" icon={HeartPulse} />
-              <StatCard title="Critical Drug Stock" value="98.2%" change="2 Items require re-order" changeColor="text-red-500" icon={Pill} />
+              <StatCard title="Today's Appointments" value="48" change="12 Remaining" changeColor="text-blue-600" icon={Calendar} />
+              <StatCard title="New Registrations" value="14" change="+3 from yesterday" changeColor="text-green-600" icon={UserPlus} />
+              <StatCard title="Doctors on Shift" value="12" change="View Schedules" changeColor="text-orange-500" icon={Stethoscope} />
+              <StatCard title="Pharmacy Requisitions" value="5" change="Pending updates" changeColor="text-red-500" icon={Pill} />
             </div>
 
-            {/* Layout Panels: Replaced charts with contextual operational lists */}
+            {/* Layout Panels */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Emergency Department Alerts */}
+              {/* Upcoming Appointments Queue */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }} whileInView={{ opacity: 1, scale: 1 }}
                 className="lg:col-span-2 bg-white p-6 rounded-[20px] border border-gray-100 shadow-sm"
               >
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-800">Critical ER / Trauma Central Feed</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">High priority action notifications</p>
+                    <h3 className="text-lg font-medium text-gray-800">Appointment Queue</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Upcoming patients for today</p>
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal size={20} /></button>
+                  <button className="text-gray-400 hover:text-gray-600"><Search size={20} /></button>
                 </div>
 
-                <div className="space-y-4">
-                  {activeERAlerts.map((alert) => (
-                    <div key={alert.id} className="flex items-center justify-between p-4 border border-gray-50 rounded-2xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+                <div className="space-y-3">
+                  {upcomingAppointments.map((apt) => (
+                    <div key={apt.id} className="flex items-center justify-between p-4 border border-gray-50 rounded-2xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${alert.severity}`}>
-                          <ShieldAlert size={20} />
+                        <div className={`px-3 py-2 rounded-xl text-sm font-bold flex flex-col items-center justify-center ${apt.color}`}>
+                          <span>{apt.time.split(' ')[0]}</span>
+                          <span className="text-[10px] uppercase">{apt.time.split(' ')[1]}</span>
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-gray-900">{alert.type}</h4>
-                          <p className="text-xs text-gray-500 mt-0.5">Location deployment: <span className="font-semibold">{alert.location}</span></p>
+                          <h4 className="text-sm font-bold text-gray-900">{apt.patient}</h4>
+                          <p className="text-xs text-gray-500 mt-0.5">{apt.type} • <span className="font-medium text-gray-700">{apt.doctor}</span></p>
                         </div>
                       </div>
-                      <span className="text-xs font-semibold text-gray-400">{alert.time}</span>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${apt.status === 'Waiting' ? 'bg-orange-100 text-orange-700' : apt.status === 'Checked In' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'}`}>
+                          {apt.status}
+                        </span>
+                        <button className="text-gray-400 hover:text-[#8ac857] transition-colors"><CheckCircle2 size={20}/></button>
+                      </div>
                     </div>
                   ))}
                 </div>
+                <button onClick={() => setActiveTab('Appointments')} className="w-full mt-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors">
+                  View All Appointments
+                </button>
               </motion.div>
 
-              {/* Operating Theater Trackers */}
+              {/* Doctor Availability Widget */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 className="bg-white p-6 rounded-[20px] border border-gray-100 shadow-sm flex flex-col"
               >
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Operating Theater Status</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">Surgical unit monitors</p>
+                    <h3 className="text-lg font-medium text-gray-900">Doctor Status</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Current shift availability</p>
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal size={20} /></button>
+                  <button className="text-gray-400 hover:text-gray-600"><Clock size={20} /></button>
                 </div>
 
-                <div className="flex flex-col gap-4 flex-1 justify-center">
-                  {theaterStatus.map((room, idx) => (
+                <div className="flex flex-col gap-3 flex-1">
+                  {doctorAvailability.map((doc, idx) => (
                     <div key={idx} className="flex flex-col p-3 rounded-xl border border-gray-50 hover:shadow-sm transition-all">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-gray-900">{room.room}</p>
-                        <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold ${room.color}`}>{room.status}</span>
+                        <p className="text-sm font-bold text-gray-900">{doc.doctor}</p>
+                        <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wide ${doc.color}`}>{doc.status}</span>
                       </div>
                       <div className="flex justify-between items-center mt-2">
-                        <p className="text-xs text-gray-500 max-w-[70%] truncate">{room.procedure}</p>
-                        <p className="text-[11px] text-gray-400 italic">{room.doctor}</p>
+                        <p className="text-xs text-gray-500">{doc.dept}</p>
+                        <p className="text-[11px] text-gray-400 font-medium">{doc.shift}</p>
                       </div>
                     </div>
                   ))}
                 </div>
+                
+                <button onClick={() => setActiveTab('Schedules')} className="w-full mt-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors">
+                  Manage Schedules
+                </button>
               </motion.div>
 
             </div>
@@ -275,11 +279,10 @@ export default function StaffDashboard() {
         )}
 
         {/* Dynamic Nav-Tab Routing Directives */}
-        {activeTab === 'Patient' && <PatientManagement/>}
-        {activeTab === 'Department' && <DepartmentManagement/>}
-        {activeTab === 'Doctor' && <DoctorManagement />}
-        {activeTab === 'Nurse' && <NurseManagement />}
-        {activeTab === 'Medicine' && <MedicineInventory />}
+        {activeTab === 'Patients' && <PatientManagement />}
+        {activeTab === 'Appointments' && <AppointmentManagement />}
+        {activeTab === 'Schedules' && <DoctorSchedules />}
+        {activeTab === 'Pharmacy' && <PharmacyManagement />}
         {activeTab === 'Account' && <ProfileSettings />}
       </main>
     </div>

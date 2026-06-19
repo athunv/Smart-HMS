@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
 from .serializers import RoleBasedTokenSerializer
 
-from rest_framework.generics import CreateAPIView,ListAPIView
+from rest_framework.generics import CreateAPIView,ListAPIView,RetrieveUpdateDestroyAPIView,ListCreateAPIView
 from rest_framework.viewsets import ModelViewSet
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -196,6 +196,27 @@ class AppointmentCreateView(CreateAPIView):
     def perform_create(self, serializer):
         serializer.save( booked_by=self.request.user)
 
+class StaffView(ListCreateAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    queryset = StaffModel.objects.all()
+    serializer_class = StaffSerializer
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class StaffDetailView(RetrieveUpdateDestroyAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    queryset = StaffModel.objects.all()
+    serializer_class = StaffSerializer
+
+    def perform_destroy(self, instance):
+        user = instance.user
+        instance.delete()
+        user.delete()
 
 
 class AppointmentListView(ListAPIView):

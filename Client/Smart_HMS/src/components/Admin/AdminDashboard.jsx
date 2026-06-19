@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PatientManagement from './PatientManagement';
 import DepartmentManagement from './DepartmentManagement';
 import DoctorManagement from './DoctorManagement';
+import StaffManagement from './StaffManagement';
 
 
 // --- Placeholder Hospital Subcomponents ---
@@ -53,7 +54,7 @@ export default function HospitalDashboard() {
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Updated navigation links per request
-  const navItems = ['Dashboard', 'Patient', 'Doctor', 'Nurse', 'Medicine','Department'];
+  const navItems = ['Dashboard', 'Staff','Patient', 'Doctor', 'Nurse', 'Medicine','Department'];
 
   const toggleDropdown = (name) => setActiveDropdown(activeDropdown === name ? null : name);
 
@@ -276,6 +277,7 @@ export default function HospitalDashboard() {
 
         {/* Dynamic Nav-Tab Routing Directives */}
         {activeTab === 'Patient' && <PatientManagement/>}
+        {activeTab === 'Staff' && <StaffManagement/>}
         {activeTab === 'Department' && <DepartmentManagement/>}
         {activeTab === 'Doctor' && <DoctorManagement />}
         {activeTab === 'Nurse' && <NurseManagement />}

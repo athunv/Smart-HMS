@@ -153,14 +153,9 @@ class DoctorLeaveModel(models.Model):
 
 class StaffModel(models.Model):
 
-    user = models.ForeignKey(
-        UserModel,
-        on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(UserModel,on_delete=models.CASCADE)
 
     designation = models.CharField(max_length=100)
 
-    salary = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
+    salary = models.DecimalField(max_digits=10,decimal_places=2)
+    profile = models.ImageField(upload_to='media/',null=True,blank=True)

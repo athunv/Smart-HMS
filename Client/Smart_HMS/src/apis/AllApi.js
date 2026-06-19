@@ -89,3 +89,44 @@ export const DeleteDoctorScheduleApi = (id) => {
 export const GetAvailableSlotsApi = (doctorId, date) => {
     return axios.get(`${BASE_URLs}/slots/${doctorId}/${date}/`);
 };
+
+// Create Staff
+export const StaffCreateApi = (data) => {
+    const access = sessionStorage.getItem('access')
+    return axios.post(`${BASE_URLs}/staff/`, data, {
+        headers: {
+            Authorization: `Bearer ${access}`
+        }
+    })
+}
+
+// Update Staff
+export const StaffUpdateApi = (data, id) => {
+    const access = sessionStorage.getItem('access')
+    return axios.put(`${BASE_URLs}/staff/${id}/`, data, {
+        headers: {
+            Authorization: `Bearer ${access}`
+        }
+    })
+    // or axios.patch(...)
+}
+
+// Get Staff List
+export const GetStaffListApi = () => {
+    const access = sessionStorage.getItem('access')
+    return axios.get(`${BASE_URLs}/staff/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
+        }
+    })
+}
+
+// Delete Staff
+export const DeleteStaffApi = (id) => {
+    const access = sessionStorage.getItem('access')
+    return axios.delete(`${BASE_URLs}/staff/${id}/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
+        }
+    })
+}

@@ -64,6 +64,10 @@ urlpatterns = [
 
     path('slots/<int:doctor_id>/<str:date>/',AvailableSlotsView.as_view()),
 
+    path('staff/',StaffView.as_view(),name='satff'),
+    path('staff/<int:pk>/',StaffDetailView.as_view(),name='satff'),
+
+
 ]
 urlpatterns += router.urls
 if settings.DEBUG:

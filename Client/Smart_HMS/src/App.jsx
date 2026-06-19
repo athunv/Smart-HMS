@@ -9,6 +9,7 @@ import DoctorDashboard from './components/Doctor/DoctorDashboard'
 import PatientProfile from './components/Patient/PatientProfile'
 import DoctorsDirectory from './components/Patient/DoctorsDirectory'
 import DoctorDuetyManagement from './components/Admin/DoctorDuetyManagement'
+import StaffDashboard from './components/Staff/StaffDashboard'
 
 
 function App() {
@@ -25,6 +26,9 @@ function App() {
         <Route path='patient-dashboard' element={<PatientProfile/>}/>
 
         <Route path='patient/doctors' element={<DoctorsDirectory/>}/>
+
+        <Route path='staff-dashboard' element={<StaffDashboard/>}/>
+
 
 
       </Routes>

@@ -26,6 +26,11 @@ class UserSerializers(serializers.ModelSerializer):
         model = UserModel
         fields = ['first_name','last_name','email','password','username','address','phone','photo','id','role']
 
+        extra_kwargs = {
+            'password': {'write_only': True,'required': False},
+            'username': {'validators': []}
+        }
+
 
 class PatientSerializer(serializers.ModelSerializer):
 
@@ -109,6 +114,62 @@ class DoctorSerializer(serializers.ModelSerializer):
 
         for key, value in validated_data.items():
             setattr(instance, key, value)
+
+        instance.save()
+
+        return instance
+
+class StaffSerializer(serializers.ModelSerializer):
+    user = UserSerializers()
+
+    class Meta:
+        model = StaffModel
+        fields = ['id', 'user', 'designation', 'salary', 'profile']
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+
+        # Safely get the password, throw an error if it's missing during creation
+        password = user_data.pop('password', None)
+        if not password:
+            raise serializers.ValidationError({
+                "user": {"password": ["This field is required when adding a new staff member."]}
+            })
+
+        # --- SET ROLE HERE ---
+        # Force the role to 'staff' before creating the User instance
+        user_data['role'] = 'staff'
+
+        user = UserModel.objects.create(**user_data)
+        user.set_password(password)
+        user.save()
+
+        # Removed role='staff' from here to prevent TypeError (assuming it belongs to UserModel)
+        return StaffModel.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
+
+        if user_data:
+            user = instance.user
+
+            # --- ENFORCE ROLE HERE ---
+            # Ensure the role cannot be accidentally changed to something else during an update
+            user_data['role'] = 'staff'
+
+            for attr, value in user_data.items():
+                if attr == 'password':
+                    user.set_password(value)
+                else:
+                    setattr(user, attr, value)
+
+            user.save()
+
+        instance.designation = validated_data.get('designation', instance.designation)
+        instance.salary = validated_data.get('salary', instance.salary)
+        
+        if 'profile' in validated_data:
+            instance.profile = validated_data['profile']
 
         instance.save()
 
