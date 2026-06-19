@@ -22,10 +22,44 @@ class RoleBasedLoginView(TokenObtainPairView):
 
 class MyProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self,request,*args,**kwargs):
-        patient = PatientModel.objects.get(user=request.user)
-        serializer = PatientSerializer(patient)
+
+    def get(self, request, *args, **kwargs):
+
+        user = request.user
+
+        if user.role == 'patient':
+            profile = PatientModel.objects.get(user=user)
+            serializer = PatientSerializer(profile)
+
+        elif user.role == 'doctor':
+            profile = DoctorModel.objects.get(user=user)
+            serializer = DoctorSerializer(profile)
+
+        elif user.role == 'staff':
+            profile = StaffModel.objects.get(user=user)
+            serializer = StaffSerializer(profile)
+
+        elif user.role == 'pharmacist':
+            return Response({
+                "user": UserSerializers(user).data,
+                "role": "pharmacist"
+            })
+
+        elif user.role == 'lab':
+            return Response({
+                "user": UserSerializers(user).data,
+                "role": "lab"
+            })
+
+        else:
+            return Response(
+                {"message": "Profile not found"},
+                status=404
+            )
+
         return Response(serializer.data)
+
+
 
 class PatientCreateView(APIView):
 
@@ -80,9 +114,32 @@ class EditProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
+        user = request.user
 
-        patient = PatientModel.objects.get(user=request.user)
-        serializer = PatientSerializer(patient,data=request.data,partial=True)
+        role_map = {
+            'patient': (PatientModel, PatientSerializer),
+            'doctor': (DoctorModel, DoctorSerializer),
+            'staff': (StaffModel, StaffSerializer),
+        }
+
+        if user.role in role_map:
+            model, serializer_class = role_map[user.role]
+
+            instance = model.objects.get(user=user)
+
+            serializer = serializer_class(
+                instance,
+                data=request.data,
+                partial=True
+            )
+
+        else:
+            serializer = UserSerializers(
+                user,
+                data=request.data,
+                partial=True
+            )
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

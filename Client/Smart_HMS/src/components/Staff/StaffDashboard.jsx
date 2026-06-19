@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Placeholder Subcomponents (Replace with your actual components) ---
 import PatientManagement from '../Admin/PatientManagement';
+import StaffProfile from './StaffProfile';
 const AppointmentManagement = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Book & Manage Appointments Content</h2></div>;
 const DoctorSchedules = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Doctor Duty Roster & Schedules Content</h2></div>;
 const PharmacyManagement = () => <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6"><h2>Medicine Inventory & Prescriptions Content</h2></div>;
@@ -283,7 +284,7 @@ export default function StaffDashboard() {
         {activeTab === 'Appointments' && <AppointmentManagement />}
         {activeTab === 'Schedules' && <DoctorSchedules />}
         {activeTab === 'Pharmacy' && <PharmacyManagement />}
-        {activeTab === 'Account' && <ProfileSettings />}
+        {activeTab === 'Account' && <StaffProfile />}
       </main>
     </div>
   );

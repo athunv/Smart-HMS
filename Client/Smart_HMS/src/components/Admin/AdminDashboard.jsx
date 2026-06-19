@@ -5,7 +5,6 @@ import {
   Stethoscope, BedDouble, Pill
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PatientManagement from './PatientManagement';
 import DepartmentManagement from './DepartmentManagement';
 import DoctorManagement from './DoctorManagement';
 import StaffManagement from './StaffManagement';
@@ -54,7 +53,7 @@ export default function HospitalDashboard() {
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Updated navigation links per request
-  const navItems = ['Dashboard', 'Staff','Patient', 'Doctor', 'Nurse', 'Medicine','Department'];
+  const navItems = ['Dashboard', 'Staff', 'Doctor', 'Nurse', 'Medicine','Department'];
 
   const toggleDropdown = (name) => setActiveDropdown(activeDropdown === name ? null : name);
 
@@ -276,7 +275,7 @@ export default function HospitalDashboard() {
         )}
 
         {/* Dynamic Nav-Tab Routing Directives */}
-        {activeTab === 'Patient' && <PatientManagement/>}
+
         {activeTab === 'Staff' && <StaffManagement/>}
         {activeTab === 'Department' && <DepartmentManagement/>}
         {activeTab === 'Doctor' && <DoctorManagement />}

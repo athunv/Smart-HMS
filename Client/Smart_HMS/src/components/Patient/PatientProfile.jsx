@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Menu, X, Edit3, Trash2, User, Calendar, Pill, Activity, 
-  Phone, Mail, MapPin, Star, Video, MessageCircle, ChevronRight, 
+import {
+  Menu, X, Edit3, Trash2, User, Calendar, Pill, Activity,
+  Phone, Mail, MapPin, Star, Video, MessageCircle, ChevronRight,
   Heart, ShieldCheck, Plus, Clock, Eye, AlertCircle, Loader2, Save
 } from 'lucide-react';
 import { BASE_URLs, GetDoctorListApi, GetMyAppoinmentsApi, GetPrescriptionsApi, MyProfileApi, MyProfileEditApi } from '../../apis/AllApi';
@@ -13,7 +13,7 @@ export default function PatientProfile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [patient, setPatient] = useState({});
   const [editData, setEditData] = useState({});
   const [doctorsData, setDoctorsData] = useState([]);
@@ -90,18 +90,18 @@ export default function PatientProfile() {
   const handleEdit = (e) => {
     e.preventDefault();
     const payload = {
-  user: {
-    first_name: editData.first_name,
-    last_name: editData.last_name,
-    phone: editData.phone,
-    address: editData.address,
-  },
-  gender: editData.gender,
-  DOB: editData.DOB,
-  blood_group: editData.blood_group,
-};
+      user: {
+        first_name: editData.first_name,
+        last_name: editData.last_name,
+        phone: editData.phone,
+        address: editData.address,
+      },
+      gender: editData.gender,
+      DOB: editData.DOB,
+      blood_group: editData.blood_group,
+    };
 
-MyProfileEditApi(payload).then(() => {
+    MyProfileEditApi(payload).then(() => {
       toast.success('Profile Updated Successfully');
       fetchProfile();
       setIsEditModalOpen(false);
@@ -129,12 +129,12 @@ MyProfileEditApi(payload).then(() => {
 
   return (
     <div className="min-h-screen bg-[#f9fbf7] text-slate-900 selection:bg-[#8ac857]/30 selection:text-slate-900 antialiased pb-24">
-      
+
       {/* PREMIUM GLASSMORPHIC NAVIGATION */}
       <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            
+
             {/* Branding Shield */}
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-[#8ac857] flex items-center justify-center text-white shadow-lg shadow-[#8ac857]/30 transform hover:rotate-6 transition-transform">
@@ -149,13 +149,12 @@ MyProfileEditApi(payload).then(() => {
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
               {['Dashboard', 'Find Doctors', 'Treatments', 'Medical Vault'].map((link, idx) => (
-                <button 
-                  key={link} 
-                  className={`px-5 py-2 text-xs font-semibold rounded-xl transition-all duration-300 ${
-                    idx === 0 
-                      ? 'bg-white text-slate-900 shadow-sm' 
+                <button
+                  key={link}
+                  className={`px-5 py-2 text-xs font-semibold rounded-xl transition-all duration-300 ${idx === 0
+                      ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
-                  }`}
+                    }`}
                 >
                   {link}
                 </button>
@@ -168,17 +167,17 @@ MyProfileEditApi(payload).then(() => {
                 <p className="text-xs font-bold text-slate-800">{patient.user?.first_name} {patient.user?.last_name}</p>
                 <p className="text-[10px] text-slate-400 font-mono">{patient.patient_code}</p>
               </div>
-              <img 
+              <img
                 src={patient.user?.photo ? `${BASE_URLs}${patient.user?.photo}` : 'https://ui-avatars.com/api/?name=' + patient.user?.first_name}
-                alt="Account Avatar" 
+                alt="Account Avatar"
                 className="w-10 h-10 rounded-xl object-cover ring-2 ring-[#8ac857]/20"
               />
             </div>
 
             {/* Mobile Navigation Trigger Button */}
             <div className="flex md:hidden">
-              <button 
-                onClick={() => setIsNavOpen(!isNavOpen)} 
+              <button
+                onClick={() => setIsNavOpen(!isNavOpen)}
                 className="p-2.5 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-100 transition"
               >
                 {isNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -191,8 +190,8 @@ MyProfileEditApi(payload).then(() => {
         {isNavOpen && (
           <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 p-4 shadow-xl space-y-2 animate-in fade-in slide-in-from-top-4 duration-200">
             {['Dashboard', 'Find Doctors', 'Treatments', 'Medical Vault'].map((link) => (
-              <button 
-                key={link} 
+              <button
+                key={link}
                 className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition"
               >
                 {link}
@@ -211,19 +210,19 @@ MyProfileEditApi(payload).then(() => {
 
       {/* DASHBOARD MODERN BENTO GRID ARCHITECTURE */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
+
           {/* BLOCK 1: PATIENT COMPREHENSIVE PROFILE CARD */}
           <div className="md:col-span-2 bg-white rounded-[2.5rem] p-6 lg:p-8 border border-slate-200/50 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
             <div className="absolute top-0 right-0 w-44 h-44 bg-[#8ac857]/5 rounded-bl-full pointer-events-none"></div>
-            
+
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
                 <div className="flex items-center gap-4 lg:gap-6">
-                  <img 
+                  <img
                     src={patient.user?.photo ? `${BASE_URLs}${patient.user?.photo}` : 'https://ui-avatars.com/api/?name=' + patient.user?.first_name}
-                    alt="Master Profile Content" 
+                    alt="Master Profile Content"
                     className="w-20 h-20 rounded-2xl object-cover shadow-md ring-4 ring-[#8ac857]/10"
                   />
                   <div>
@@ -236,13 +235,13 @@ MyProfileEditApi(payload).then(() => {
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-center">
-                  <button 
+                  <button
                     onClick={() => setIsEditModalOpen(true)}
                     className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 hover:bg-[#8ac857]/10 text-slate-700 hover:text-[#5f9634] border border-slate-100 hover:border-[#8ac857]/20 rounded-xl text-xs font-bold transition-all"
                   >
                     <Edit3 className="w-3.5 h-3.5" /> Edit Profile
                   </button>
-                  <button 
+                  <button
                     onClick={triggerDelete}
                     className="p-2 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-100 hover:border-rose-100 rounded-xl transition-all"
                     title="Purge Profile Index"
@@ -276,7 +275,7 @@ MyProfileEditApi(payload).then(() => {
           {/* BLOCK 2: VITALS TRACKER */}
           <div className="bg-slate-900 text-white rounded-[2.5rem] p-6 lg:p-8 flex flex-col justify-between shadow-xl shadow-slate-900/20 relative overflow-hidden">
             <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#8ac857]/10 rounded-full blur-2xl"></div>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Biometrics</span>
               <div className="px-2 py-0.5 rounded bg-[#8ac857]/20 text-[#8ac857] font-mono text-[10px] font-bold">Live Sync</div>
@@ -318,9 +317,8 @@ MyProfileEditApi(payload).then(() => {
                       <span className="font-bold text-slate-400 flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {item.appointment_date}
                       </span>
-                      <span className={`px-2 py-0.5 font-bold rounded-md uppercase tracking-wider text-[9px] ${
-                        item.status === 'confirmed' ? 'bg-[#8ac857]/10 text-[#5f9634]' : 'bg-amber-100 text-amber-700'
-                      }`}>
+                      <span className={`px-2 py-0.5 font-bold rounded-md uppercase tracking-wider text-[9px] ${item.status === 'confirmed' ? 'bg-[#8ac857]/10 text-[#5f9634]' : 'bg-amber-100 text-amber-700'
+                        }`}>
                         {item.status}
                       </span>
                     </div>
@@ -389,15 +387,15 @@ MyProfileEditApi(payload).then(() => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {doctorsData.slice(0, 3).map((doc) => (
-                <div 
-                  key={doc.id} 
+                <div
+                  key={doc.id}
                   className="group border border-slate-100 hover:border-[#8ac857]/30 rounded-2xl p-5 bg-white transition-all duration-300 hover:shadow-md flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={doc.image || 'https://ui-avatars.com/api/?name=' + doc.doctor_name} 
-                        alt={doc.doctor_name} 
+                      <img
+                        src={doc.image || 'https://ui-avatars.com/api/?name=' + doc.doctor_name}
+                        alt={doc.doctor_name}
                         className="w-14 h-14 rounded-xl object-cover border border-slate-100"
                       />
                       <div>
@@ -412,7 +410,7 @@ MyProfileEditApi(payload).then(() => {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => {
                       setSelectedDoctor(doc);
                       setIsModalOpen(true);
@@ -444,17 +442,17 @@ MyProfileEditApi(payload).then(() => {
           <div className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Refine Medical Profile</h3>
-              <button 
-                onClick={() => setIsEditModalOpen(false)} 
+              <button
+                onClick={() => setIsEditModalOpen(false)}
                 className="p-2 bg-white hover:bg-slate-100 rounded-full shadow-sm border border-slate-200 transition-all"
               >
                 <X className="w-4 h-4 text-slate-700" />
               </button>
             </div>
-            
+
             <div className="p-6 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
               <form id="editProfileForm" onSubmit={handleEdit} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                
+
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">First Name</label>
                   <input type="text" name="first_name" value={editData.first_name} onChange={handleChange} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#8ac857]/30 focus:border-[#8ac857] outline-none transition" />
@@ -502,7 +500,7 @@ MyProfileEditApi(payload).then(() => {
                 </div>
               </form>
             </div>
-            
+
             <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50">
               <button onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition">Cancel</button>
               <button form="editProfileForm" type="submit" className="px-5 py-2.5 flex items-center gap-2 text-xs font-bold text-white bg-[#8ac857] hover:bg-[#77b247] rounded-xl shadow-md transition">
@@ -518,16 +516,16 @@ MyProfileEditApi(payload).then(() => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
             <div className="relative h-44 bg-gradient-to-br from-[#8ac857]/10 via-slate-50 to-white p-6 flex items-end border-b border-slate-100">
-              <button 
-                onClick={() => setIsModalOpen(false)} 
+              <button
+                onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 p-2 bg-white hover:bg-slate-50 rounded-full shadow-sm border border-slate-100 transition-all"
               >
                 <X className="w-4 h-4 text-slate-700" />
               </button>
               <div className="flex items-center gap-4">
-                <img 
-                  src={selectedDoctor.image || 'https://ui-avatars.com/api/?name=' + selectedDoctor.doctor_name} 
-                  alt={selectedDoctor.doctor_name} 
+                <img
+                  src={selectedDoctor.image || 'https://ui-avatars.com/api/?name=' + selectedDoctor.doctor_name}
+                  alt={selectedDoctor.doctor_name}
                   className="w-16 h-16 rounded-2xl object-cover ring-4 ring-white shadow-md"
                 />
                 <div>
@@ -560,7 +558,7 @@ MyProfileEditApi(payload).then(() => {
                   <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400">Consultation Fee</p>
                   <p className="text-2xl font-black text-slate-900">₹{selectedDoctor.con_fee}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     toast.success(`Appointment pipeline confirmed perfectly with ${selectedDoctor.doctor_name}.`);
                     setIsModalOpen(false);
