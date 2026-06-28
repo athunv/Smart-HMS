@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { BASE_URLs, GetDoctorListApi, GetMyAppoinmentsApi, GetPrescriptionsApi, MyProfileApi, MyProfileEditApi } from '../../apis/AllApi';
 import { toast } from 'react-toastify';
+import DoctorsDirectory from './DoctorsDirectory';
 
 export default function PatientProfile() {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function PatientProfile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab,setActiveTab]  = useState('Dashboard')
 
   const [patient, setPatient] = useState({});
   const [editData, setEditData] = useState({});
@@ -35,7 +37,8 @@ export default function PatientProfile() {
         DOB: res.data?.DOB || '',
         blood_group: res.data?.blood_group || '',
         weight: res.data?.weight || '',
-        height: res.data?.height || ''
+        height: res.data?.height || '',
+      
       });
     } catch (err) {
       console.log(err);
@@ -150,14 +153,18 @@ export default function PatientProfile() {
             <div className="hidden md:flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
               {['Dashboard', 'Find Doctors', 'Treatments', 'Medical Vault'].map((link, idx) => (
                 <button
-                  key={link}
-                  className={`px-5 py-2 text-xs font-semibold rounded-xl transition-all duration-300 ${idx === 0
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
-                    }`}
-                >
-                  {link}
-                </button>
+          key={link}
+          // 2. Dynamically check if the current link matches the activeTab state
+          className={`px-5 py-2 text-xs font-semibold rounded-xl transition-all duration-300 ${
+            activeTab === link
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
+          }`}
+          // 3. Update the state when a button is clicked
+          onClick={() => setActiveTab(link)}
+        >
+          {link}
+        </button>
               ))}
             </div>
 
@@ -189,14 +196,21 @@ export default function PatientProfile() {
         {/* Responsive Drawer Overlay */}
         {isNavOpen && (
           <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 p-4 shadow-xl space-y-2 animate-in fade-in slide-in-from-top-4 duration-200">
-            {['Dashboard', 'Find Doctors', 'Treatments', 'Medical Vault'].map((link) => (
-              <button
-                key={link}
-                className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition"
-              >
-                {link}
-              </button>
-            ))}
+           {['Dashboard', 'Find Doctors', 'Treatments', 'Medical Vault'].map((link) => (
+    <button
+      key={link}
+      // 1. Dynamically apply styles if the mobile link matches the active state
+      className={`w-full text-left px-4 py-3 text-sm font-semibold rounded-xl transition ${
+        activeTab === link
+          ? 'bg-slate-100 text-slate-900' 
+          : 'text-slate-700 hover:bg-slate-50'
+      }`}
+      // 2. Update the state when clicked
+      onClick={() => setActiveTab(link)}
+    >
+      {link}
+    </button>
+  ))}
             <div className="pt-4 mt-2 border-t border-slate-100 flex items-center gap-3 px-4">
               <img src={patient.user?.photo ? `${BASE_URLs}${patient.user?.photo}` : 'https://ui-avatars.com/api/?name=User'} alt="Avatar" className="w-10 h-10 rounded-xl object-cover" />
               <div>
@@ -208,10 +222,11 @@ export default function PatientProfile() {
         )}
       </nav>
 
+
       {/* DASHBOARD MODERN BENTO GRID ARCHITECTURE */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {activeTab==='Dashboard'&&(
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           {/* BLOCK 1: PATIENT COMPREHENSIVE PROFILE CARD */}
           <div className="md:col-span-2 bg-white rounded-[2.5rem] p-6 lg:p-8 border border-slate-200/50 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
@@ -434,6 +449,13 @@ export default function PatientProfile() {
           </div>
 
         </div>
+        )}
+
+        {activeTab==='Find Doctors'&&(
+          <DoctorsDirectory patient={patient}/>
+        )}
+
+
       </main>
 
       {/* MODAL OVERLAY: EDIT PROFILE */}

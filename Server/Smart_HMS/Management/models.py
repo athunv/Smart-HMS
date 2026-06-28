@@ -50,8 +50,9 @@ class DoctorModel(models.Model):
 
 
 
-class AppointmentModel(models.Model):
+from django.db.models import Q, UniqueConstraint
 
+class AppointmentModel(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
@@ -60,14 +61,33 @@ class AppointmentModel(models.Model):
         ('no_show', 'No Show'),
     )
 
-    patient = models.ForeignKey(PatientModel,on_delete=models.CASCADE,related_name='appointments')
-    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE,related_name='appointments')
+    patient = models.ForeignKey(PatientModel, on_delete=models.CASCADE, related_name='appointments')
+    doctor = models.ForeignKey(DoctorModel, on_delete=models.CASCADE, related_name='appointments')
     appointment_date = models.DateField()
-    token_number = models.PositiveIntegerField(null=True,blank=True)
-    booked_by = models.ForeignKey(UserModel,on_delete=models.SET_NULL,null=True,blank=True,related_name='booked_appointments')
-    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='pending')
+    token_number = models.PositiveIntegerField(null=True, blank=True)
+    booked_by = models.ForeignKey(UserModel, on_delete=models.SET_NULL, null=True, blank=True, related_name='booked_appointments')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     reason = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            # Prevent double booking the exact same token for the same doctor on the same day
+            UniqueConstraint(
+                fields=['doctor', 'appointment_date', 'token_number'],
+                condition=Q(status__in=['pending', 'confirmed']),
+                name='unique_active_doctor_token'
+            ),
+            # Prevent a patient from booking the same doctor multiple times on the same day
+            UniqueConstraint(
+                fields=['patient', 'doctor', 'appointment_date'],
+                condition=Q(status__in=['pending', 'confirmed']),
+                name='unique_active_patient_booking'
+            )
+        ]
+
+    def __str__(self):
+        return f"Token {self.token_number} - {self.patient} with {self.doctor} on {self.appointment_date}"
     
 
 class DoctorScheduleModel(models.Model):

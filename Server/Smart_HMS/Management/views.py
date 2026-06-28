@@ -306,66 +306,62 @@ class DoctorScheduleViewSet(ModelViewSet):
     serializer_class = DoctorScheduleSerializer
 
 class AvailableSlotsView(APIView):
-
     def get(self, request, doctor_id, date):
+        try:
+            doctor = DoctorModel.objects.get(id=doctor_id)
+        except DoctorModel.DoesNotExist:
+            return Response({"error": "Doctor not found"}, status=404)
 
-        doctor = DoctorModel.objects.get(id=doctor_id)
+        booking_date = datetime.strptime(date, "%Y-%m-%d").date()
 
-        booking_date = datetime.strptime(
-            date,
-            "%Y-%m-%d"
-        ).date()
+        # 1. Check if Doctor is on leave
+        if DoctorLeaveModel.objects.filter(doctor=doctor, leave_date=booking_date).exists():
+            return Response({
+                "message": "Doctor is on leave on this date.",
+                "available_slots": []
+            }, status=200)
 
+        # 2. Check Schedule
         day_name = booking_date.strftime("%A")
-
-        schedule = DoctorScheduleModel.objects.filter(
-            doctor=doctor,
-            day=day_name
-        ).first()
+        schedule = DoctorScheduleModel.objects.filter(doctor=doctor, day=day_name).first()
 
         if not schedule:
-            return Response([])
+             return Response({
+                "message": "Doctor does not consult on this day.",
+                "available_slots": []
+            }, status=200)
 
-        start = datetime.combine(
-            booking_date,
-            schedule.start_time
-        )
-
-        end = datetime.combine(
-            booking_date,
-            schedule.end_time
-        )
-
+        # 3. Generate Time Slots
+        start = datetime.combine(booking_date, schedule.start_time)
+        end = datetime.combine(booking_date, schedule.end_time)
+        
         slots = []
-
-        # Generate all possible time slots for the day
         while start < end:
             slots.append(start.strftime("%H:%M"))
             start += timedelta(minutes=schedule.slot_duration)
 
-        # --- THE FIX ---
-        # Instead of looking for a time field, we get the booked token numbers
+        # 4. Fetch Active Bookings (ignore cancelled/completed ones)
         booked_tokens = AppointmentModel.objects.filter(
             doctor=doctor,
-            appointment_date=booking_date
-        ).values_list(
-            'token_number',
-            flat=True
-        )
+            appointment_date=booking_date,
+            status__in=['pending', 'confirmed']
+        ).values_list('token_number', flat=True)
 
-        available_slots = []
+        all_slots_with_status = []
         
-        # Loop through the generated slots and map them to token numbers (1, 2, 3...)
+        # 5. Map all slots to tokens with a boolean flag
         for index, time_str in enumerate(slots):
-            # We assume tokens start at 1 (Token 1 = Slot index 0)
             token_number = index + 1 
-            
-            # If the token is not in the booked list, the slot is available
-            if token_number not in booked_tokens:
-                available_slots.append(time_str)
+            all_slots_with_status.append({
+                "token_number": token_number,
+                "time": time_str,
+                "is_booked": token_number in booked_tokens # Boolean flag
+            })
 
-        return Response(available_slots)
+        return Response({"available_slots": all_slots_with_status}, status=200)
     
+
+
 class ActiveConsultationView(APIView):
 
     permission_classes = [IsAuthenticated]

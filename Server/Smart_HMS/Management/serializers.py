@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import *
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from datetime import datetime
+
 
 class RoleBasedTokenSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -179,33 +181,89 @@ class DoctorListSerializer(serializers.ModelSerializer):
 
     doctor_name = serializers.CharField(source='user.get_full_name',read_only=True)
     department_name = serializers.CharField(source='department.dep_name',read_only=True)
+    profile = serializers.ImageField(
+        source='user.photo',
+        read_only=True
+    )
 
     class Meta:
         model = DoctorModel
-        fields = ['id','doctor_name','department_name','specialization','qualification','con_fee']
+        fields = ['id','doctor_name','department_name','specialization','qualification','con_fee','profile']
 
 class AppointmentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = AppointmentModel
         fields = '__all__'
+        read_only_fields = ['booked_by', 'status', 'created_at']
 
-    def create(self, validated_data):
+    def validate(self, data):
+        doctor = data.get('doctor')
+        appointment_date = data.get('appointment_date')
+        token_number = data.get('token_number')
+        patient = data.get('patient')
 
-        doctor = validated_data['doctor']
-        appointment_date = validated_data['appointment_date']
+        # 1. Check if the doctor is on leave
+        is_on_leave = DoctorLeaveModel.objects.filter(
+            doctor=doctor, 
+            leave_date=appointment_date
+        ).exists()
+        
+        if is_on_leave:
+            raise serializers.ValidationError({
+                "appointment_date": "The selected doctor is on leave on this date."
+            })
 
-        last_token = AppointmentModel.objects.filter(doctor=doctor,appointment_date=appointment_date).order_by('-token_number').first()
+        # 2. Check if the doctor works on this day
+        day_name = appointment_date.strftime("%A")
+        schedule = DoctorScheduleModel.objects.filter(
+            doctor=doctor, 
+            day=day_name
+        ).first()
 
-        token_number = 1
+        if not schedule:
+            raise serializers.ValidationError({
+                "appointment_date": f"The doctor does not have a schedule for {day_name}s."
+            })
 
-        if last_token:
-            token_number = last_token.token_number + 1
+        # 3. Validate Token Number bounds
+        if token_number:
+            start = datetime.combine(appointment_date, schedule.start_time)
+            end = datetime.combine(appointment_date, schedule.end_time)
+            total_minutes = (end - start).total_seconds() / 60
+            max_tokens = int(total_minutes // schedule.slot_duration)
 
-        appointment = AppointmentModel.objects.create(token_number=token_number,**validated_data)
+            if token_number < 1 or token_number > max_tokens:
+                raise serializers.ValidationError({
+                    "token_number": f"Invalid token. Must be between 1 and {max_tokens} for this shift."
+                })
 
-        return appointment
+        # 4. Graceful check for duplicate token (catches it before DB throws IntegrityError)
+        token_exists = AppointmentModel.objects.filter(
+            doctor=doctor,
+            appointment_date=appointment_date,
+            token_number=token_number,
+            status__in=['pending', 'confirmed']
+        ).exists()
 
+        if token_exists:
+            raise serializers.ValidationError({
+                "token_number": "This token is already booked. Please refresh and select another."
+            })
+
+        # 5. Graceful check for duplicate patient booking
+        patient_already_booked = AppointmentModel.objects.filter(
+            patient=patient,
+            doctor=doctor,
+            appointment_date=appointment_date,
+            status__in=['pending', 'confirmed']
+        ).exists()
+
+        if patient_already_booked:
+            raise serializers.ValidationError({
+                "non_field_errors": "This patient already has an active appointment with this doctor on this date."
+            })
+
+        return data
 
 class DoctorScheduleSerializer(serializers.ModelSerializer):
 

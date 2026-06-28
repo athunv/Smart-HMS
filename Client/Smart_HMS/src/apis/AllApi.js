@@ -85,10 +85,7 @@ export const DeleteDoctorScheduleApi = (id) => {
 // AVAILABLE SLOTS API
 // ----------------------------------------
 
-// GET: Fetch available time slots for a specific doctor on a specific date
-export const GetAvailableSlotsApi = (doctorId, date) => {
-    return axios.get(`${BASE_URLs}/slots/${doctorId}/${date}/`);
-};
+
 
 // Create Staff
 export const StaffCreateApi = (data) => {
@@ -130,3 +127,19 @@ export const DeleteStaffApi = (id) => {
         }
     })
 }
+
+
+export const fetchAvailableSlotAPi=()=>{
+    const access = sessionStorage.getItem('access')
+    return axios.get(`${BASE_URLs}/slots/${selectedDoctor.id}/${selectedDate}/`,{
+        headers:{Authorization:`Barear ${access}`}
+    })
+}
+
+// In AllApi.js
+export const GetAvailableSlotsApi = (doctorId, date) => {
+    const access = sessionStorage.getItem('access');
+    return axios.get(`${BASE_URLs}/slots/${doctorId}/${date}/`, {
+        headers: { Authorization: `Bearer ${access}` }
+    });
+};
