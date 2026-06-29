@@ -191,6 +191,7 @@ class DoctorListSerializer(serializers.ModelSerializer):
         fields = ['id','doctor_name','department_name','specialization','qualification','con_fee','profile']
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
     class Meta:
         model = AppointmentModel
         fields = '__all__'

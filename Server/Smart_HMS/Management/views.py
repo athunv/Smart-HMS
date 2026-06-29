@@ -127,18 +127,10 @@ class EditProfileView(APIView):
 
             instance = model.objects.get(user=user)
 
-            serializer = serializer_class(
-                instance,
-                data=request.data,
-                partial=True
-            )
+            serializer = serializer_class(instance,data=request.data,partial=True)
 
         else:
-            serializer = UserSerializers(
-                user,
-                data=request.data,
-                partial=True
-            )
+            serializer = UserSerializers(user,data=request.data,partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -174,10 +166,7 @@ class DepartmentCreateView(APIView):
     def delete(self, request, id):
         department = get_object_or_404(DepartmentModel, id=id)
         department.delete()
-        return Response(
-            {'message': 'Department Deleted'},
-            status=status.HTTP_200_OK
-        )
+        return Response({'message': 'Department Deleted'},status=status.HTTP_200_OK)
     
     
 class DoctorCreateView(APIView):
@@ -199,10 +188,7 @@ class DoctorCreateView(APIView):
             serializer = DoctorSerializer(doctor)
             return Response(serializer.data)
 
-        doctor = DoctorModel.objects.select_related(
-            'user',
-            'department'
-        ).all()
+        doctor = DoctorModel.objects.select_related('user','department').all()
         serializer = DoctorSerializer(doctor, many=True)
         return Response(serializer.data)
             
@@ -277,9 +263,27 @@ class StaffDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class AppointmentListView(ListAPIView):
-
-    queryset = AppointmentModel.objects.all()
     serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]  # Ensures only logged-in users can access this
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # 1. Check if the logged-in user is a doctor
+        if getattr(user, 'role', None) == 'doctor':
+            # Filter appointments where the appointment's doctor's user matches the logged-in user
+            return AppointmentModel.objects.filter(doctor__user=user)
+        
+        # 2. (Optional) If the user is a patient, show only their own appointments
+        elif getattr(user, 'role', None) == 'patient':
+            return AppointmentModel.objects.filter(patient__user=user)
+            
+        # 3. If the user is staff or a superuser, they can see all appointments
+        elif getattr(user, 'role', None) == 'staff' or user.is_superuser:
+            return AppointmentModel.objects.all()
+
+        # 4. Fallback for unhandled roles (returns an empty queryset for security)
+        return AppointmentModel.objects.none()
 
 
 # Logged-in patient sees only their bookings.

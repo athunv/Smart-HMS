@@ -143,3 +143,10 @@ export const GetAvailableSlotsApi = (doctorId, date) => {
         headers: { Authorization: `Bearer ${access}` }
     });
 };
+
+export const GetDoctorAppoinmentsApi = (doctorId, date) => {
+    const access = sessionStorage.getItem('access');
+    return axios.get(`${BASE_URLs}/appointments/`, {
+        headers: { Authorization: `Bearer ${access}` }
+    });
+};
