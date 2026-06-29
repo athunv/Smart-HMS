@@ -37,6 +37,8 @@ useEffect(() => {
     try {
       const res = await GetDoctorListApi();
       setDoctors(res.data);
+      console.log('doctors',res.data);
+      
       // Use res.data directly here, not 'data'
       const uniqueSpecialties = ['All Specialists', ...new Set(res.data.map(d => d.specialization).filter(Boolean))];
       setSpecialties(uniqueSpecialties);
