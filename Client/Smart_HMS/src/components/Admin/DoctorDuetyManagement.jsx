@@ -17,7 +17,7 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
   // --- SCHEDULE MANAGEMENT STATE ---
   const [existingSchedules, setExistingSchedules] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [showForm, setShowForm] = useState(false); // <-- NEW: State to hide/show the form
+  const [showForm, setShowForm] = useState(false);
   const [scheduleData, setScheduleData] = useState({
     day: 'Monday',
     start_time: '',
@@ -63,7 +63,6 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
         toast.success('Schedule added successfully!');
       }
       
-      // Reset and HIDE form after successful update/add
       setEditingId(null);
       setShowForm(false);
       setScheduleData({ day: 'Monday', start_time: '', end_time: '', slot_duration: 10 });
@@ -82,7 +81,7 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
       end_time: schedule.end_time,
       slot_duration: schedule.slot_duration,
     });
-    setShowForm(true); // <-- Show the form when editing
+    setShowForm(true); 
   };
 
   const handleDelete = async (id) => {
@@ -92,7 +91,7 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
       toast.success('Schedule removed.');
       if (editingId === id) {
         setEditingId(null);
-        setShowForm(false); // Hide form if deleting the currently edited item
+        setShowForm(false);
         setScheduleData({ day: 'Monday', start_time: '', end_time: '', slot_duration: 10 });
       }
       fetchSchedules();
@@ -109,8 +108,13 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
     setLoadingSlots(true);
     try {
       const response = await axios.get(`${BASE_URLs}/slots/${doctorId}/${checkDate}/`);
-      setAvailableSlots(response.data);
-      if (response.data.length === 0) {
+      
+      // MODIFIED: Access the nested 'available_slots' array from the response object
+      const slotsArray = response.data.available_slots || [];
+      setAvailableSlots(slotsArray);
+      console.log('available slots ', slotsArray);
+      
+      if (slotsArray.length === 0) {
         toast.info('No slots available (Booked out or no schedule set for this day).');
       }
     } catch (error) {
@@ -153,7 +157,6 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
           {activeTab === 'schedule' && (
             <div className="flex flex-col gap-6">
               
-              {/* Top Controls: Show Add Button if form is hidden */}
               {!showForm && (
                 <div className="flex justify-end">
                   <button 
@@ -165,10 +168,8 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
                 </div>
               )}
 
-              {/* Form Section (Hidden by default) */}
               {showForm && (
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm relative">
-                  {/* Hide Form Button */}
                   <button 
                     onClick={() => { setShowForm(false); setEditingId(null); }} 
                     className="absolute top-3 right-3 text-slate-400 hover:text-rose-500"
@@ -216,7 +217,6 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
                 </div>
               )}
 
-              {/* Existing Schedules List */}
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-slate-700 border-b pb-2">Active Schedules</h3>
                 {existingSchedules.length === 0 ? (
@@ -242,7 +242,6 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
                   </ul>
                 )}
               </div>
-
             </div>
           )}
 
@@ -263,9 +262,18 @@ export default function DoctorDuetyManagement({ doctorId, onClose }) {
                 <h3 className="font-medium text-slate-700 mb-3">Available Slots:</h3>
                 {availableSlots.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
+                    {/* MODIFIED: Mapping through objects and checking is_booked status */}
                     {availableSlots.map((slot, index) => (
-                      <span key={index} className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-md text-xs font-semibold">
-                        {slot}
+                      <span 
+                        key={index} 
+                        title={`Token Number: ${slot.token_number}`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-semibold border ${
+                          slot.is_booked 
+                            ? 'bg-rose-50 text-rose-700 border-rose-200 opacity-60 cursor-not-allowed'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}
+                      >
+                        {slot.time}
                       </span>
                     ))}
                   </div>

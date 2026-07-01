@@ -23,11 +23,9 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(
-    r'doctor-schedule',
-    DoctorScheduleViewSet,
-    basename='doctor-schedule'
-)
+
+router.register(r'doctor-schedule',DoctorScheduleViewSet,basename='doctor-schedule')
+router.register("doctor-leave",DoctorLeaveViewSet,basename="doctor-leave")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

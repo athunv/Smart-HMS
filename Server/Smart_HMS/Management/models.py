@@ -159,16 +159,7 @@ class LabTestModel(models.Model):
         default='pending'
     )
 
-class DoctorLeaveModel(models.Model):
 
-    doctor = models.ForeignKey(
-        DoctorModel,
-        on_delete=models.CASCADE
-    )
-
-    leave_date = models.DateField()
-
-    reason = models.CharField(max_length=200)
 
 
 class StaffModel(models.Model):
@@ -179,3 +170,28 @@ class StaffModel(models.Model):
 
     salary = models.DecimalField(max_digits=10,decimal_places=2)
     profile = models.ImageField(upload_to='media/',null=True,blank=True)
+
+
+class DoctorLeaveModel(models.Model):
+
+    STATUS_CHOICES = (
+        ('pending','Pending'),
+        ('approved','Approved'),
+        ('rejected','Rejected'),
+        ('cancelled','Cancelled')
+    )
+
+    LEAVE_TYPE = (
+        ('full_day','Full Day'),
+        ('half_day','Half Day')
+    )
+
+    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE,related_name='leaves')
+    from_date = models.DateField()
+    to_date = models.DateField()
+    leave_type = models.CharField(max_length=20,choices=LEAVE_TYPE,default='full_day')
+    reason = models.TextField()
+    status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='pending')
+    approved_by = models.ForeignKey(UserModel,null=True,blank=True,on_delete=models.SET_NULL,related_name='approved_leaves')
+    remarks = models.TextField(blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)

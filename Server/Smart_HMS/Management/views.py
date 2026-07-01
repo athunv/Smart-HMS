@@ -3,18 +3,24 @@ from .models import *
 from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+
 # Create your views here.
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import AllowAny
 from .serializers import RoleBasedTokenSerializer
+from rest_framework.exceptions import ValidationError
+
 
 from rest_framework.generics import CreateAPIView,ListAPIView,RetrieveUpdateDestroyAPIView,ListCreateAPIView
 from rest_framework.viewsets import ModelViewSet
 from datetime import datetime, timedelta
 from django.utils import timezone
+
+
 
 class RoleBasedLoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
@@ -40,22 +46,13 @@ class MyProfileView(APIView):
             serializer = StaffSerializer(profile)
 
         elif user.role == 'pharmacist':
-            return Response({
-                "user": UserSerializers(user).data,
-                "role": "pharmacist"
-            })
+            return Response({"user": UserSerializers(user).data,"role": "pharmacist"})
 
         elif user.role == 'lab':
-            return Response({
-                "user": UserSerializers(user).data,
-                "role": "lab"
-            })
+            return Response({ "user": UserSerializers(user).data,"role": "lab"})
 
         else:
-            return Response(
-                {"message": "Profile not found"},
-                status=404
-            )
+            return Response({"message": "Profile not found"}, status=404)
 
         return Response(serializer.data)
 
@@ -80,9 +77,7 @@ class PatientCreateView(APIView):
             serializer = PatientSerializer(patient)
             return Response(serializer.data)
 
-        patients = PatientModel.objects.select_related(
-                'user'
-            ).all()
+        patients = PatientModel.objects.select_related('user').all()
         serializer = PatientSerializer(patients,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
@@ -102,10 +97,7 @@ class PatientCreateView(APIView):
         try:
             patient = PatientModel.objects.get(id=id)
             patient.delete()
-            return Response(
-                {"message": "Patient Deleted Successfully"},
-                status=status.HTTP_200_OK
-            )
+            return Response( {"message": "Patient Deleted Successfully"},status=status.HTTP_200_OK)
         
         except PatientModel.DoesNotExist:
             return Response({"error": "Patient not found"},status=status.HTTP_404_NOT_FOUND)
@@ -237,7 +229,36 @@ class AppointmentCreateView(CreateAPIView):
     serializer_class = AppointmentSerializer
 
     def perform_create(self, serializer):
-        serializer.save( booked_by=self.request.user)
+
+        user = self.request.user
+
+        # Patient books for themselves
+        if user.role == "patient":
+
+            try:
+                patient = PatientModel.objects.get(user=user)
+            except PatientModel.DoesNotExist:
+                raise ValidationError({
+                    "detail": "Patient profile not found."
+                })
+
+            serializer.save(
+                patient=patient,
+                booked_by=user
+            )
+
+        # Staff/Admin books for another patient
+        elif user.role in ["staff"] or user.is_superuser:
+
+            serializer.save(
+                booked_by=user
+            )
+
+        else:
+            raise ValidationError({
+                "detail":
+                "You are not allowed to book appointments."
+            })
 
 class StaffView(ListCreateAPIView):
 
@@ -264,29 +285,22 @@ class StaffDetailView(RetrieveUpdateDestroyAPIView):
 
 class AppointmentListView(ListAPIView):
     serializer_class = AppointmentSerializer
-    permission_classes = [IsAuthenticated]  # Ensures only logged-in users can access this
+    permission_classes = [IsAuthenticated]  
 
     def get_queryset(self):
         user = self.request.user
 
-        # 1. Check if the logged-in user is a doctor
         if getattr(user, 'role', None) == 'doctor':
-            # Filter appointments where the appointment's doctor's user matches the logged-in user
+
             return AppointmentModel.objects.filter(doctor__user=user)
-        
-        # 2. (Optional) If the user is a patient, show only their own appointments
-        elif getattr(user, 'role', None) == 'patient':
-            return AppointmentModel.objects.filter(patient__user=user)
-            
-        # 3. If the user is staff or a superuser, they can see all appointments
+
+
         elif getattr(user, 'role', None) == 'staff' or user.is_superuser:
             return AppointmentModel.objects.all()
 
-        # 4. Fallback for unhandled roles (returns an empty queryset for security)
         return AppointmentModel.objects.none()
 
 
-# Logged-in patient sees only their bookings.
 class MyAppointmentsView(ListAPIView):
 
     serializer_class = AppointmentSerializer
@@ -318,14 +332,22 @@ class AvailableSlotsView(APIView):
 
         booking_date = datetime.strptime(date, "%Y-%m-%d").date()
 
-        # 1. Check if Doctor is on leave
-        if DoctorLeaveModel.objects.filter(doctor=doctor, leave_date=booking_date).exists():
-            return Response({
-                "message": "Doctor is on leave on this date.",
-                "available_slots": []
-            }, status=200)
+        is_on_leave = DoctorLeaveModel.objects.filter(
+            doctor=doctor,
+            from_date__lte=booking_date,
+            to_date__gte=booking_date,
+            status="approved"      # or include "pending" if you want pending leave to block bookings
+        ).exists()
 
-        # 2. Check Schedule
+        if is_on_leave:
+            return Response(
+                {
+                    "message": "Doctor is on leave on this date.",
+                    "available_slots": []
+                },
+                status=200
+            )
+
         day_name = booking_date.strftime("%A")
         schedule = DoctorScheduleModel.objects.filter(doctor=doctor, day=day_name).first()
 
@@ -432,3 +454,133 @@ class MyLabTestsView(APIView):
         )
 
         return Response(serializer.data)
+    
+
+class DoctorLeaveViewSet(viewsets.ModelViewSet):
+
+    serializer_class = DoctorLeaveSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        if user.is_superuser:
+            return DoctorLeaveModel.objects.select_related(
+                "doctor",
+                "doctor__user"
+            )
+
+        if user.role == "doctor":
+            return DoctorLeaveModel.objects.filter(
+                doctor__user=user
+            ).select_related(
+                "doctor",
+                "doctor__user"
+            )
+
+        return DoctorLeaveModel.objects.none()
+
+    def perform_create(self, serializer):
+
+        if self.request.user.role == "doctor":
+
+            doctor = DoctorModel.objects.get(user=self.request.user)
+
+            serializer.save(
+                doctor=doctor
+            )
+
+        else:
+            serializer.save()
+
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+
+        leave = self.get_object()
+
+        if not request.user.is_superuser:
+            return Response(
+                {"detail": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        appointment_exists = AppointmentModel.objects.filter(
+            doctor=leave.doctor,
+            appointment_date__range=[
+                leave.from_date,
+                leave.to_date
+            ],
+            status__in=["pending", "confirmed"]
+        ).exists()
+
+        if appointment_exists:
+            return Response(
+                {
+                    "detail":
+                    "Doctor has appointments during this leave period."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        leave.status = "approved"
+        leave.approved_by = request.user
+        leave.remarks = request.data.get("remarks", "")
+        leave.save()
+
+        return Response(
+            {
+                "message": "Leave approved successfully."
+            }
+        )
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+
+        leave = self.get_object()
+
+        if not request.user.is_superuser:
+            return Response(
+                {"detail": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        leave.status = "rejected"
+        leave.approved_by = request.user
+        leave.remarks = request.data.get("remarks", "")
+        leave.save()
+
+        return Response(
+            {
+                "message": "Leave rejected successfully."
+            }
+        )
+
+    @action(detail=True, methods=["post"])
+    def cancel(self, request, pk=None):
+
+        leave = self.get_object()
+
+        if leave.doctor.user != request.user:
+            return Response(
+                {"detail": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if leave.status == "approved":
+            return Response(
+                {
+                    "detail":
+                    "Approved leave cannot be cancelled."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        leave.status = "cancelled"
+        leave.save()
+
+        return Response(
+            {
+                "message": "Leave cancelled successfully."
+            }
+        )

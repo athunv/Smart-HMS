@@ -191,77 +191,123 @@ class DoctorListSerializer(serializers.ModelSerializer):
         fields = ['id','doctor_name','department_name','specialization','qualification','con_fee','profile']
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient = PatientSerializer(read_only=True)
+
+    patient_details = PatientSerializer(source="patient", read_only=True)
+
     class Meta:
         model = AppointmentModel
-        fields = '__all__'
-        read_only_fields = ['booked_by', 'status', 'created_at']
+        fields = "__all__"
+        read_only_fields = [
+            "booked_by",
+            "status",
+            "created_at",
+        ]
 
     def validate(self, data):
-        doctor = data.get('doctor')
-        appointment_date = data.get('appointment_date')
-        token_number = data.get('token_number')
-        patient = data.get('patient')
 
-        # 1. Check if the doctor is on leave
-        is_on_leave = DoctorLeaveModel.objects.filter(
-            doctor=doctor, 
-            leave_date=appointment_date
-        ).exists()
-        
-        if is_on_leave:
+        request = self.context["request"]
+        user = request.user
+
+        doctor = data["doctor"]
+        appointment_date = data["appointment_date"]
+        token_number = data["token_number"]
+
+        # Patient role
+        if user.role == "patient":
+
+            try:
+                patient = PatientModel.objects.get(user=user)
+            except PatientModel.DoesNotExist:
+                raise serializers.ValidationError({
+                    "patient": "Patient profile not found."
+                })
+
+        # Staff/Admin
+        else:
+
+            patient = data.get("patient")
+
+            if patient is None:
+                raise serializers.ValidationError({
+                    "patient": "Patient is required."
+                })
+
+        # Doctor leave
+        if DoctorLeaveModel.objects.filter(
+            doctor=doctor,
+            from_date__lte=appointment_date,
+            to_date__gte=appointment_date,
+            status="approved"
+        ).exists():
+
             raise serializers.ValidationError({
-                "appointment_date": "The selected doctor is on leave on this date."
+                "appointment_date":
+                "Doctor is on approved leave."
             })
 
-        # 2. Check if the doctor works on this day
+        # Doctor Schedule
         day_name = appointment_date.strftime("%A")
+
         schedule = DoctorScheduleModel.objects.filter(
-            doctor=doctor, 
+            doctor=doctor,
             day=day_name
         ).first()
 
         if not schedule:
             raise serializers.ValidationError({
-                "appointment_date": f"The doctor does not have a schedule for {day_name}s."
+                "appointment_date":
+                "Doctor is unavailable on this day."
             })
 
-        # 3. Validate Token Number bounds
-        if token_number:
-            start = datetime.combine(appointment_date, schedule.start_time)
-            end = datetime.combine(appointment_date, schedule.end_time)
-            total_minutes = (end - start).total_seconds() / 60
-            max_tokens = int(total_minutes // schedule.slot_duration)
+        # Token Validation
+        start = datetime.combine(
+            appointment_date,
+            schedule.start_time
+        )
 
-            if token_number < 1 or token_number > max_tokens:
-                raise serializers.ValidationError({
-                    "token_number": f"Invalid token. Must be between 1 and {max_tokens} for this shift."
-                })
+        end = datetime.combine(
+            appointment_date,
+            schedule.end_time
+        )
 
-        # 4. Graceful check for duplicate token (catches it before DB throws IntegrityError)
-        token_exists = AppointmentModel.objects.filter(
+        total_minutes = (
+            end - start
+        ).total_seconds() / 60
+
+        max_tokens = int(
+            total_minutes // schedule.slot_duration
+        )
+
+        if token_number < 1 or token_number > max_tokens:
+            raise serializers.ValidationError({
+                "token_number":
+                f"Token must be between 1 and {max_tokens}"
+            })
+
+        # Token already booked
+        if AppointmentModel.objects.filter(
             doctor=doctor,
             appointment_date=appointment_date,
             token_number=token_number,
-            status__in=['pending', 'confirmed']
-        ).exists()
+            status__in=["pending", "confirmed"]
+        ).exists():
 
-        if token_exists:
             raise serializers.ValidationError({
-                "token_number": "This token is already booked. Please refresh and select another."
+                "token_number":
+                "This token is already booked."
             })
 
-        # 5. Graceful check for duplicate patient booking
-        patient_already_booked = AppointmentModel.objects.filter(
+        # Patient already booked
+        if AppointmentModel.objects.filter(
             patient=patient,
             doctor=doctor,
             appointment_date=appointment_date,
-            status__in=['pending', 'confirmed']
-        ).exists()
+            status__in=["pending", "confirmed"]
+        ).exists():
 
-        if patient_already_booked:
             raise serializers.ValidationError({
-                "non_field_errors": "This patient already has an active appointment with this doctor on this date."
+                "patient":
+                "Patient already has an appointment with this doctor."
             })
 
         return data
@@ -307,3 +353,43 @@ class LabTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = LabTestModel
         fields = '__all__'
+
+class DoctorLeaveSerializer(serializers.ModelSerializer):
+
+    doctor_name = serializers.CharField(
+        source="doctor.user.get_full_name",
+        read_only=True
+    )
+
+    class Meta:
+        model = DoctorLeaveModel
+        fields = "__all__"
+        read_only_fields = (
+            "status",
+            "approved_by",
+            "created_at",
+        )
+
+    def validate(self, attrs):
+
+        if attrs["from_date"] > attrs["to_date"]:
+            raise serializers.ValidationError(
+                "From date cannot be greater than To date."
+            )
+
+        overlap = DoctorLeaveModel.objects.filter(
+            doctor=attrs["doctor"],
+            from_date__lte=attrs["to_date"],
+            to_date__gte=attrs["from_date"],
+            status__in=["pending", "approved"]
+        )
+
+        if self.instance:
+            overlap = overlap.exclude(id=self.instance.id)
+
+        if overlap.exists():
+            raise serializers.ValidationError(
+                "Leave already exists for this period."
+            )
+
+        return attrs
