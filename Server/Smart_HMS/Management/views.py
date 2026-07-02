@@ -242,23 +242,11 @@ class AppointmentCreateView(CreateAPIView):
                     "detail": "Patient profile not found."
                 })
 
-            serializer.save(
-                patient=patient,
-                booked_by=user
-            )
-
-        # Staff/Admin books for another patient
+            serializer.save(patient=patient,booked_by=user)
         elif user.role in ["staff"] or user.is_superuser:
-
-            serializer.save(
-                booked_by=user
-            )
-
+            serializer.save(booked_by=user)
         else:
-            raise ValidationError({
-                "detail":
-                "You are not allowed to book appointments."
-            })
+            raise ValidationError({"detail": "You are not allowed to book appointments."})
 
 class StaffView(ListCreateAPIView):
 
