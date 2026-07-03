@@ -3,60 +3,60 @@ import axios from 'axios'
 
 export const BASE_URLs = 'http://127.0.0.1:8000'
 
-export const LoginApi =(data)=>{
-    return axios.post(`${BASE_URLs}/login/`,data)
+export const LoginApi = (data) => {
+    return axios.post(`${BASE_URLs}/login/`, data)
 }
 
-export const GetDoctorListApi=()=>{
+export const GetDoctorListApi = () => {
     const access = sessionStorage.getItem('access')
-    return axios.get(`${BASE_URLs}/doctors/`,{
-        headers:{
-            Authorization:`Bearer ${access}`
+    return axios.get(`${BASE_URLs}/doctors/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
         }
     })
 }
 
-export const GetDoctorDetailsApi=(id)=>{
+export const GetDoctorDetailsApi = (id) => {
     const access = sessionStorage.getItem('access')
-    return axios.get(`${BASE_URLs}/doctor-details/${id}/`,{
-        headers:{
-            Authorization:`Bearer ${access}`
+    return axios.get(`${BASE_URLs}/doctor-details/${id}/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
         }
     })
 }
 
-export const GetMyAppoinmentsApi=(id)=>{
+export const GetMyAppoinmentsApi = (id) => {
     const access = sessionStorage.getItem('access')
-    return axios.get(`${BASE_URLs}/appointments/my/`,{
-        headers:{
-            Authorization:`Bearer ${access}`
+    return axios.get(`${BASE_URLs}/appointments/my/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
         }
     })
 }
 
 
-export const GetPrescriptionsApi=(id)=>{
+export const GetPrescriptionsApi = (id) => {
     const access = sessionStorage.getItem('access')
-    return axios.get(`${BASE_URLs}/patient/prescriptions/`,{
-        headers:{
-            Authorization:`Bearer ${access}`
+    return axios.get(`${BASE_URLs}/patient/prescriptions/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
         }
     })
 }
-export const MyProfileApi=()=>{
+export const MyProfileApi = () => {
     const access = sessionStorage.getItem('access')
-    return axios.get(`${BASE_URLs}/profile/`,{
-        headers:{
-            Authorization:`Bearer ${access}`
+    return axios.get(`${BASE_URLs}/profile/`, {
+        headers: {
+            Authorization: `Bearer ${access}`
         }
     })
 }
 
-export const MyProfileEditApi=(data)=>{
+export const MyProfileEditApi = (data) => {
     const access = sessionStorage.getItem('access')
-    return axios.put(`${BASE_URLs}/profile/edit/`,data,{
-        headers:{
-            Authorization:`Bearer ${access}`
+    return axios.put(`${BASE_URLs}/profile/edit/`, data, {
+        headers: {
+            Authorization: `Bearer ${access}`
         }
     })
 }
@@ -81,12 +81,6 @@ export const DeleteDoctorScheduleApi = (id) => {
 };
 
 
-// ----------------------------------------
-// AVAILABLE SLOTS API
-// ----------------------------------------
-
-
-
 // Create Staff
 export const StaffCreateApi = (data) => {
     const access = sessionStorage.getItem('access')
@@ -105,7 +99,6 @@ export const StaffUpdateApi = (data, id) => {
             Authorization: `Bearer ${access}`
         }
     })
-    // or axios.patch(...)
 }
 
 // Get Staff List
@@ -128,11 +121,10 @@ export const DeleteStaffApi = (id) => {
     })
 }
 
-
-export const fetchAvailableSlotAPi=()=>{
+export const fetchAvailableSlotAPi = () => {
     const access = sessionStorage.getItem('access')
-    return axios.get(`${BASE_URLs}/slots/${selectedDoctor.id}/${selectedDate}/`,{
-        headers:{Authorization:`Barear ${access}`}
+    return axios.get(`${BASE_URLs}/slots/${selectedDoctor.id}/${selectedDate}/`, {
+        headers: { Authorization: `Barear ${access}` }
     })
 }
 

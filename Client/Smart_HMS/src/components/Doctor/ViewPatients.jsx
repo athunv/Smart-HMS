@@ -5,7 +5,7 @@ import { BASE_URLs, GetDoctorAppoinmentsApi } from '../../apis/AllApi';
 function ViewPatients() {
     const [appointmentList, setAppointmentList] = useState([]);
     const [filteredList, setFilteredList] = useState([]);
-    
+
     // Set default date to today (2026-06-29) formatted as YYYY-MM-DD
     const [selectedDate, setSelectedDate] = useState('2026-06-29');
     const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +54,7 @@ function ViewPatients() {
 
     return (
         <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6">
-            
+
             {/* Header Controls Area */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-gray-50">
                 <div>
@@ -72,7 +72,7 @@ function ViewPatients() {
                     {/* Search Input */}
                     <div className="relative w-full sm:w-64">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input 
+                        <input
                             type="text"
                             placeholder="Search name or token..."
                             value={searchQuery}
@@ -84,8 +84,8 @@ function ViewPatients() {
                     {/* Date Picker Input */}
                     <div className="relative w-full sm:w-auto flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#8ac857]/50 focus-within:bg-white transition-all">
                         <Calendar className="text-gray-400" size={16} />
-                        <input 
-                            type="date" 
+                        <input
+                            type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             className="bg-transparent text-sm font-medium text-gray-700 outline-none cursor-pointer"
@@ -129,13 +129,13 @@ function ViewPatients() {
                                             #{appointment.token_number}
                                         </span>
                                     </td>
-                                    
+
                                     {/* Avatar & Patient Identity Info */}
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-3">
-                                            <img 
-                                                src={appointment.patient.user.photo} 
-                                                alt="Profile" 
+                                            <img
+                                                src={appointment.patient.user.photo}
+                                                alt="Profile"
                                                 className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-100 shadow-sm"
                                                 onError={(e) => {
                                                     e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80";
@@ -164,11 +164,10 @@ function ViewPatients() {
 
                                     {/* Status Indicator Pill */}
                                     <td className="py-4 px-4 text-center">
-                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide border ${
-                                            appointment.status === 'pending' 
-                                                ? 'bg-orange-50 text-orange-600 border-orange-100' 
+                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide border ${appointment.status === 'pending'
+                                                ? 'bg-orange-50 text-orange-600 border-orange-100'
                                                 : 'bg-green-50 text-green-600 border-green-100'
-                                        }`}>
+                                            }`}>
                                             {appointment.status}
                                         </span>
                                     </td>
