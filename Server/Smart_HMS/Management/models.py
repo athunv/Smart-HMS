@@ -195,3 +195,105 @@ class DoctorLeaveModel(models.Model):
     approved_by = models.ForeignKey(UserModel,null=True,blank=True,on_delete=models.SET_NULL,related_name='approved_leaves')
     remarks = models.TextField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class MedicineCategoryModel(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = "Medicine Categories"
+
+    def __str__(self):
+        return self.name
+
+class MedicineModel(models.Model):
+    FORM_CHOICES = (
+        ('tablet', 'Tablet'),
+        ('capsule', 'Capsule'),
+        ('syrup', 'Syrup'),
+        ('injection', 'Injection'),
+        ('ointment', 'Ointment'),
+        ('drops', 'Drops'),
+        ('inhaler', 'Inhaler'),
+        ('other', 'Other'),
+    )
+
+    category = models.ForeignKey(MedicineCategoryModel, on_delete=models.SET_NULL, null=True, blank=True, related_name='medicines')
+    name = models.CharField(max_length=150)
+    generic_name = models.CharField(max_length=150, null=True, blank=True, help_text="e.g., Paracetamol")
+    form = models.CharField(max_length=20, choices=FORM_CHOICES, default='tablet')
+    strength = models.CharField(max_length=50, null=True, blank=True, help_text="e.g., 500mg, 5ml")
+    manufacturer = models.CharField(max_length=100, null=True, blank=True)
+    
+    # Inventory Tracking
+    stock = models.PositiveIntegerField(default=0)
+    reorder_level = models.PositiveIntegerField(default=10, help_text="Triggers low-stock warning")
+    
+    # Pricing
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Selling price per unit")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.strength})" if self.strength else self.name
+
+    @property
+    def is_low_stock(self):
+        return self.stock <= self.reorder_level
+
+
+# ------------------------------------------------------------------
+# 3. BATCH & EXPIRY MANAGEMENT MODEL
+# ------------------------------------------------------------------
+class MedicineBatchModel(models.Model):
+    """
+    Tracks specific batches received from suppliers, critical for 
+    handling expiry dates and lot numbers.
+    """
+    medicine = models.ForeignKey(MedicineModel, on_delete=models.CASCADE, related_name='batches')
+    batch_number = models.CharField(max_length=50)
+    quantity = models.PositiveIntegerField()
+    expiry_date = models.DateField()
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('medicine', 'batch_number')
+
+    def __str__(self):
+        return f"{self.medicine.name} - Batch #{self.batch_number} (Exp: {self.expiry_date})"
+
+    @property
+    def is_expired(self):
+        return self.expiry_date <= timezone.now().date()
+
+
+# ------------------------------------------------------------------
+# 4. REFACTORED PRESCRIPTION MODELS (Parent-Child Setup)
+# ------------------------------------------------------------------
+class PrescriptionModel(models.Model):
+    patient = models.ForeignKey('PatientModel', on_delete=models.CASCADE, related_name='prescriptions')
+    doctor = models.ForeignKey('DoctorModel', on_delete=models.CASCADE, related_name='prescriptions')
+    appointment = models.ForeignKey('AppointmentModel', on_delete=models.SET_NULL, null=True, blank=True, related_name='prescriptions')
+    notes = models.TextField(null=True, blank=True, help_text="Doctor's general advice or dietary warnings")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Prescription #{self.id} for {self.patient}"
+
+
+class PrescriptionItemModel(models.Model):
+    """
+    Individual medicine items attached to a single prescription.
+    """
+    prescription = models.ForeignKey(PrescriptionModel, on_delete=models.CASCADE, related_name='items')
+    medicine = models.ForeignKey(MedicineModel, on_delete=models.PROTECT)
+    dosage = models.CharField(max_length=50, help_text="e.g., 1-0-1 or 1 tablet every 8 hours")
+    duration = models.CharField(max_length=50, help_text="e.g., 5 days")
+    instructions = models.CharField(max_length=150, null=True, blank=True, help_text="e.g., After food")
+    quantity_prescribed = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.medicine.name} for {self.prescription.patient}"
