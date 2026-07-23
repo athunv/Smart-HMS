@@ -65,6 +65,17 @@ urlpatterns = [
     path('staff/',StaffView.as_view(),name='satff'),
     path('staff/<int:pk>/',StaffDetailView.as_view(),name='satff'),
 
+    # Category URLs
+    path('med/categories/', MedicineCategoryListCreateView.as_view(), name='category-list-create'),
+    path('med/categories/<int:pk>/', MedicineCategoryDetailView.as_view(), name='category-detail'),
+
+    # Medicine URLs
+    path('medicines/', MedicineListCreateView.as_view(), name='medicine-list-create'),
+    path('medicines/<int:pk>/', MedicineDetailView.as_view(), name='medicine-detail'),
+
+    # Batch URLs
+    path('med/batches/', MedicineBatchListCreateView.as_view(), name='batch-list-create'),
+    path('med/batches/<int:pk>/', MedicineBatchDetailView.as_view(), name='batch-detail'),
 
 ]
 urlpatterns += router.urls

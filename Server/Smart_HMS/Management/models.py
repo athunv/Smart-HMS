@@ -119,26 +119,7 @@ class MedicalRecordModel(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-class PrescriptionModel(models.Model):
-    patient = models.ForeignKey(PatientModel,on_delete=models.CASCADE)
-    doctor = models.ForeignKey(DoctorModel,on_delete=models.CASCADE)
 
-    medicine_name = models.CharField(max_length=100)
-    dosage = models.CharField(max_length=50)
-    duration = models.CharField(max_length=50)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-class MedicineModel(models.Model):
-
-    name = models.CharField(max_length=100)
-
-    stock = models.PositiveIntegerField()
-
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
 
 class LabTestModel(models.Model):
 

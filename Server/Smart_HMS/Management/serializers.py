@@ -393,3 +393,22 @@ class DoctorLeaveSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+class MedicineCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields ='__all__'
+        model = MedicineCategoryModel
+
+class MedicineSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = MedicineModel
+
+class MedicineBatchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        fields = '__all__'
+        model = MedicineBatchModel

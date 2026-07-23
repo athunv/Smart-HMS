@@ -572,3 +572,57 @@ class DoctorLeaveViewSet(viewsets.ModelViewSet):
                 "message": "Leave cancelled successfully."
             }
         )
+
+
+class MedicineCategoryView(APIView):
+
+    def post(self,request,*args,**kwargs):
+
+        serializer = MedicineCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+
+
+    def get(self,request,*args,**kwargs):
+
+        data = MedicineCategoryModel.objects.all()
+        serializer = MedicineCategorySerializer(data,many=True)
+        return Response(serializer.data)
+
+class MedicineCategoryListCreateView(ListCreateAPIView):
+    """Handles GET (list all) and POST (create new) for Categories"""
+    queryset = MedicineCategoryModel.objects.all()
+    serializer_class = MedicineCategorySerializer
+
+class MedicineCategoryDetailView(RetrieveUpdateDestroyAPIView):
+    """Handles GET (retrieve one), PUT/PATCH (update), and DELETE for a Category"""
+    queryset = MedicineCategoryModel.objects.all()
+    serializer_class = MedicineCategorySerializer
+
+# ------------------------------------------------------------------
+# 2. MEDICINE VIEWS
+# ------------------------------------------------------------------
+class MedicineListCreateView(ListCreateAPIView):
+    """Handles GET (list all) and POST (create new) for Medicines"""
+    queryset = MedicineModel.objects.all()
+    serializer_class = MedicineSerializer
+
+class MedicineDetailView(RetrieveUpdateDestroyAPIView):
+    """Handles GET (retrieve one), PUT/PATCH (update), and DELETE for a Medicine"""
+    queryset = MedicineModel.objects.all()
+    serializer_class = MedicineSerializer
+
+# ------------------------------------------------------------------
+# 3. BATCH VIEWS
+# ------------------------------------------------------------------
+class MedicineBatchListCreateView(ListCreateAPIView):
+    """Handles GET (list all) and POST (create new) for Batches"""
+    queryset = MedicineBatchModel.objects.all()
+    serializer_class = MedicineBatchSerializer
+
+class MedicineBatchDetailView(RetrieveUpdateDestroyAPIView):
+    """Handles GET (retrieve one), PUT/PATCH (update), and DELETE for a Batch"""
+    queryset = MedicineBatchModel.objects.all()
+    serializer_class = MedicineBatchSerializer
