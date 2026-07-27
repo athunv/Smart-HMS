@@ -538,11 +538,7 @@ class DoctorLeaveViewSet(viewsets.ModelViewSet):
         leave.remarks = request.data.get("remarks", "")
         leave.save()
 
-        return Response(
-            {
-                "message": "Leave rejected successfully."
-            }
-        )
+        return Response({"message": "Leave rejected successfully."})
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
@@ -550,28 +546,17 @@ class DoctorLeaveViewSet(viewsets.ModelViewSet):
         leave = self.get_object()
 
         if leave.doctor.user != request.user:
-            return Response(
-                {"detail": "Permission denied"},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"detail": "Permission denied"},status=status.HTTP_403_FORBIDDEN)
 
         if leave.status == "approved":
             return Response(
-                {
-                    "detail":
-                    "Approved leave cannot be cancelled."
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                {"detail": "Approved leave cannot be cancelled."},status=status.HTTP_400_BAD_REQUEST)
 
         leave.status = "cancelled"
         leave.save()
 
         return Response(
-            {
-                "message": "Leave cancelled successfully."
-            }
-        )
+            {"message": "Leave cancelled successfully."})
 
 
 class MedicineCategoryView(APIView):
@@ -601,9 +586,7 @@ class MedicineCategoryDetailView(RetrieveUpdateDestroyAPIView):
     queryset = MedicineCategoryModel.objects.all()
     serializer_class = MedicineCategorySerializer
 
-# ------------------------------------------------------------------
-# 2. MEDICINE VIEWS
-# ------------------------------------------------------------------
+
 class MedicineListCreateView(ListCreateAPIView):
     """Handles GET (list all) and POST (create new) for Medicines"""
     queryset = MedicineModel.objects.all()
