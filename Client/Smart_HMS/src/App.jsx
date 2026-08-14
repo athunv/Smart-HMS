@@ -11,12 +11,15 @@ import DoctorsDirectory from './components/Patient/DoctorsDirectory'
 import DoctorDuetyManagement from './components/Admin/DoctorDuetyManagement'
 import StaffDashboard from './components/Staff/StaffDashboard'
 
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify'
 
 function App() {
   return (
     <Provider store={store}>
       <div>
       <BrowserRouter>
+      <ToastContainer/>
       <Routes>
         <Route path='/admin-dashboard' element={<AdminDashboard/>}/>
         <Route path='' element={<Login/>}/>

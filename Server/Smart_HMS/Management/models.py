@@ -25,7 +25,7 @@ class PatientModel(models.Model):
 
     user = models.ForeignKey(UserModel,on_delete=models.CASCADE)
     gender = models.CharField(choices=gender_choice,null=True,blank=True,max_length=20)
-    DOB = models.DateField(null=True,blank=True)
+ 
     blood_group = models.CharField(max_length=50,null=True,blank=True)
     patient_code = models.CharField(max_length=50,null=True,blank=True)
     age = models.PositiveIntegerField(null=True,blank=True)

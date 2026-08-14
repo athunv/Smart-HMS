@@ -53,7 +53,7 @@ export default function HospitalDashboard() {
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Updated navigation links per request
-  const navItems = ['Dashboard', 'Staff', 'Doctor', 'Nurse', 'Medicine','Department'];
+  const navItems = ['Dashboard', 'Staff', 'Doctor', 'Nurse', 'Department'];
 
   const toggleDropdown = (name) => setActiveDropdown(activeDropdown === name ? null : name);
 
